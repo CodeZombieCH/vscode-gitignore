@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.6.0
+
+- Supported multi root workspace.
+- Upgraded typescript version.
+- Contributed by [@hangxingliu](https://github.com/hangxingliu)
+
 ## v0.5.0
 
 - Implemented proxy support for requests made by this extension (resolves #1 requested by @LaurentChardin, @ibigpapa). A proxy can be set by Visual Studio Code settings (`http.proxy`) or by declaring environment variables (`HTTPS_PROXY`, `HTTP_PROXY`)
