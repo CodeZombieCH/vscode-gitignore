@@ -21,6 +21,9 @@
 		"Languages",
 		"Other"
 	],
+	"keywords": [
+		"multi-root ready"
+	],
 	"activationEvents": [
 		"onCommand:addgitignore"
 	],

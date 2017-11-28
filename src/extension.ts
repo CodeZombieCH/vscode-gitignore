@@ -19,7 +19,7 @@ enum OperationType {
 }
 
 interface GitignoreOperation {
-	type: OperationType;
+	type?: OperationType;
 	path: string;
 	file: GitignoreFile;
 }
@@ -174,6 +174,24 @@ function getGitignoreFiles() {
 		});
 }
 
+function promptForFolderIfNecessary(gitIgnoreFile: GitignoreFile) {
+	let folders = vscode.workspace.workspaceFolders;
+	// folders is falsy means two conditions:
+	// 1. there have not any folders opened
+	// 2. the vscode is not latest version so didn't support multi-root folder API
+	if (!folders) {
+		if (!vscode.workspace.rootPath)
+			return Promise.reject(new CancellationError());
+		// old version VSCode
+		return Promise.resolve({ file: gitIgnoreFile, path: vscode.workspace.rootPath });
+	}
+	return vscode.window.showWorkspaceFolderPick().then(folder => {
+		if (!folder)
+			return Promise.reject(new CancellationError());
+		return Promise.resolve({file: gitIgnoreFile, path: folder.uri.fsPath});
+	});
+}
+
 function promptForOperation() {
 	return vscode.window.showQuickPick([
 		{
@@ -214,13 +232,13 @@ export function activate(context: vscode.ExtensionContext) {
 			})
 			// Check if a .gitignore file exists
 			.then((file: GitignoreFile) => {
-				if(!file) {
+				if (!file) {
 					// Cancel
 					throw new CancellationError();
 				}
-
-				var path = vscode.workspace.rootPath + '/.gitignore';
-
+				return promptForFolderIfNecessary(file);
+			}).then(({ path, file }) => {
+				path = joinPath(path, '.gitignore');
 				return new Promise<GitignoreOperation>((resolve, reject) => {
 					// Check if file exists
 					fs.stat(path, (err, stats) => {
