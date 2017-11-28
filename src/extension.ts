@@ -1,19 +1,21 @@
+/// <reference path="../node_modules/vscode/thenable.d.ts" />
+/// <reference path="./vscode.d.ts" />
+
 import * as vscode from 'vscode';
-import {Cache, CacheItem} from './cache';
-
-const GitHubApi = require('github');
-const fs = require('fs');
-const https = require('https');
-const url = require('url');
-
+import { Cache, CacheItem } from './cache';
+import { join as joinPath } from "path";
+import * as https from "https";
+import * as fs from "fs";
+import * as url from "url";
+import  * as GitHubApi from "github";
 
 class CancellationError extends Error {
 
 }
 
 enum OperationType {
-	Append,
-	Overwrite
+	Append = 'Append',
+	Overwrite = 'Overwrite'
 }
 
 interface GitignoreOperation {
@@ -24,6 +26,7 @@ interface GitignoreOperation {
 
 export interface GitignoreFile extends vscode.QuickPickItem {
 	url: string;
+	description: string;
 }
 
 export class GitignoreRepository {
@@ -90,7 +93,7 @@ export class GitignoreRepository {
 			// If appending to the existing .gitignore file, write a NEWLINE as seperator
 			if(flags === 'a') file.write('\n');
 
-			let options = url.parse(operation.file.url);
+			let options: https.RequestOptions = url.parse(operation.file.url);
 			options.agent = getAgent(); // Proxy
 			options.headers = {
 				'User-Agent': userAgent
@@ -100,14 +103,13 @@ export class GitignoreRepository {
 				response.pipe(file);
 
 				file.on('finish', () => {
-					file.close(() => {
-						resolve(operation);
-					});
+					file.close();
+					resolve(operation);
 				});
 			}).on('error', err => {
 				// Delete the .gitignore file if we created it
 				if(flags === 'w') {
-					fs.unlink(operation.path);
+					fs.unlink(operation.path, (err) => { });
 				}
 				reject(err.message);
 			});
@@ -234,8 +236,11 @@ export function activate(context: vscode.ExtensionContext) {
 										reject(new CancellationError());
 										return;
 									}
+									let type = operation.label == OperationType.Append
+										? OperationType.Append
+										: OperationType.Overwrite;
 
-									resolve({ path: path, file: file, type: OperationType[operation.label] });
+									resolve({ path, file, type });
 								});
 						}
 					});
