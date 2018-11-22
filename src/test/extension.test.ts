@@ -6,7 +6,10 @@ import * as gitignoreExtension from '../extension';
 
 suite('GitignoreRepository', () => {
 
-	test('is getting all .gitignore files', () => {
+	test('is getting all .gitignore files', function () {
+		// increase slow and timeout value, because network request are sometimes slowly
+		this.slow(5000);
+		this.timeout(5000);
 
 		// Create a Github API client
 		let client = new GitHubApi({
@@ -45,6 +48,15 @@ suite('GitignoreRepository', () => {
 				description: 'Global/VisualStudioCode.gitignore',
 				url: 'https://raw.githubusercontent.com/github/gitignore/master/Global/VisualStudioCode.gitignore'
 			});
+		}).catch(error => {
+			const message: String = error.message || String(error);
+			if (message.startsWith('403') && message.match(/API rate limit exceeded/i)) {
+				// It is just ok
+				// But if you don't like it, you can get reference from:
+				// 	https://docs.travis-ci.com/user/encryption-keys/
+				return;
+			}
+			throw error;
 		});
 	});
 });
