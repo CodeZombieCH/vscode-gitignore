@@ -76,7 +76,7 @@
 		"tslint": "^5.11.0",
 		"typescript": "^2.9.2",
 		"vsce": "^1.53.0",
-		"vscode": "^1.1.21"
+		"vscode": "^1.1.22"
 	},
 	"dependencies": {
 		"github": "^13.1.1"
