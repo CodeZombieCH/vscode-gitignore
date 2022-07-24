@@ -30,3 +30,9 @@ export interface GitignoreOperation {
 	 */
 	template: GitignoreTemplate;
 }
+
+export class GithubApiRateLimitReached extends Error {
+	constructor(message: string) {
+		super(message);
+	}
+}

@@ -1,6 +1,11 @@
 # Changelog
 
 
+## next
+
+- Changed minium API level to 1.48 (https://code.visualstudio.com/updates/v1_48#_using-authentication-providers)
+
+
 ## v0.9.0
 
 - Migrated to async/await and native promises

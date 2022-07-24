@@ -5,7 +5,7 @@ import { WriteStream } from 'fs';
 
 import { getAgent, getDefaultHeaders } from '../http-client';
 import { Cache, CacheItem } from '../cache';
-import { GitignoreProvider, GitignoreTemplate, GitignoreOperation, GitignoreOperationType } from '../interfaces';
+import { GitignoreProvider, GitignoreTemplate, GitignoreOperation, GitignoreOperationType, GithubApiRateLimitReached } from '../interfaces';
 
 
 interface GithubRepositoryItem {
@@ -67,6 +67,13 @@ export class GithubGitignoreRepositoryProvider implements GitignoreProvider {
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				const data : any[] = [];
 
+				const rateLimitRemaining = Number.parseInt(res.headers['x-ratelimit-remaining'] as string);
+				console.log(rateLimitRemaining);
+
+				// eslint-disable-next-line no-constant-condition
+				if(true /*ratelimitRemaining < 1*/) {
+					return reject(new GithubApiRateLimitReached('GitHub API ratelimit reached'));
+				}
 				console.log(`vscode-gitignore: Github API ratelimit remaining: ${res.headers['x-ratelimit-remaining']}`);
 
 				res.on('data', chunk => {

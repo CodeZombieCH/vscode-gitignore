@@ -2,7 +2,7 @@
 	"name": "gitignore",
 	"displayName": "gitignore",
 	"description": "Lets you pull .gitignore templates from the https://github.com/github/gitignore repository. Language support for .gitignore files.",
-	"version": "0.9.0",
+	"version": "0.10.0-alpha.1",
 	"author": "Marc-André Bühler",
 	"publisher": "codezombiech",
 	"icon": "icon.png",
@@ -16,7 +16,7 @@
 	"homepage": "https://github.com/CodeZombieCH/vscode-gitignore/issues",
 	"license": "MIT",
 	"engines": {
-		"vscode": "^1.18.0"
+		"vscode": "^1.48.0"
 	},
 	"categories": [
 		"Programming Languages",
@@ -82,7 +82,7 @@
 		"@types/glob": "^7.2.0",
 		"@types/mocha": "^9.1.1",
 		"@types/node": "16.x",
-		"@types/vscode": "1.18.x",
+		"@types/vscode": "1.48.x",
 		"@typescript-eslint/eslint-plugin": "^5.30.0",
 		"@typescript-eslint/parser": "^5.30.0",
 		"@vscode/test-electron": "^2.1.5",
