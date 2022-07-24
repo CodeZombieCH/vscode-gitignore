@@ -3,8 +3,9 @@ import * as fs from 'fs';
 import { join as joinPath } from 'path';
 
 import { Cache } from './cache';
-import { GitignoreTemplate, GitignoreOperation, GitignoreOperationType, GitignoreProvider } from './interfaces';
+import { GitignoreTemplate, GitignoreOperation, GitignoreOperationType, GitignoreProvider, GithubApiRateLimitReached } from './interfaces';
 import { GithubGitignoreRepositoryProvider } from './providers/github-gitignore-repository';
+import { isAuthenticated, tryGetGithubSession } from './github';
 
 
 class CancellationError extends Error {
@@ -153,8 +154,29 @@ export function activate(context: vscode.ExtensionContext) {
 			if (error instanceof CancellationError) {
 				return;
 			}
+			else if (error instanceof GithubApiRateLimitReached) {
+				if (isAuthenticated()) {
+					console.error('vscode-gitignore: GitHub API rate limit reached');
+					return;
+				}
 
-			await vscode.window.showErrorMessage(String(error));
+				// Try to get github api token
+				void tryGetGithubSession()
+					.then(token => {
+						if(token) {
+							console.log('vscode-gitignore: access token succeeded');
+						}
+						else {
+							console.log('vscode-gitignore: Acquiring access token failed');
+						}
+					})
+					.catch(err => {
+						console.log('vscode-gitignore: ', err);
+					});
+			}
+			else {
+				await vscode.window.showErrorMessage(String(error));
+			}
 		}
 	});
 

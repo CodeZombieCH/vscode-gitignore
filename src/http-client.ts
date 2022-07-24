@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as HttpsProxyAgent from 'https-proxy-agent';
 import { Agent } from 'http';
+import { getAccessToken } from './github';
 
 
 export const userAgent = 'vscode-gitignore-extension';
@@ -37,6 +38,13 @@ export function getAgent() {
 }
 
 export function getAuthorizationHeaderValue() {
+	// Use vscode authentication provider
+	const accessToken = getAccessToken();
+	if(accessToken) {
+		return 'Token ' + accessToken;
+	}
+
+	// Use env var
 	if(process.env.GITHUB_AUTHORIZATION) {
 		return process.env.GITHUB_AUTHORIZATION;
 	}
