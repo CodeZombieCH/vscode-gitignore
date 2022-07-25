@@ -3,9 +3,9 @@ import * as fs from 'fs';
 import { join as joinPath } from 'path';
 
 import { Cache } from './cache';
-import { GitignoreTemplate, GitignoreOperation, GitignoreOperationType, GitignoreProvider, GithubApiRateLimitReached } from './interfaces';
+import { GitignoreTemplate, GitignoreOperation, GitignoreOperationType, GitignoreProvider } from './interfaces';
 import { GithubGitignoreRepositoryProvider } from './providers/github-gitignore-repository';
-import { isAuthenticated, tryGetGithubSession } from './github';
+import { GithubApiRateLimitReached, isAuthenticated, tryGetGithubToken } from './github-client';
 
 
 class CancellationError extends Error {
@@ -157,22 +157,26 @@ export function activate(context: vscode.ExtensionContext) {
 			else if (error instanceof GithubApiRateLimitReached) {
 				if (isAuthenticated()) {
 					console.error('vscode-gitignore: GitHub API rate limit reached');
+					await vscode.window.showErrorMessage('GitHub API rate limit reached');
 					return;
 				}
 
-				// Try to get github api token
-				void tryGetGithubSession()
-					.then(token => {
-						if(token) {
-							console.log('vscode-gitignore: access token succeeded');
-						}
-						else {
-							console.log('vscode-gitignore: Acquiring access token failed');
-						}
-					})
-					.catch(err => {
-						console.log('vscode-gitignore: ', err);
-					});
+				// Try to get GitHub API token
+				try {
+					const token = await tryGetGithubToken();
+					if(token) {
+						console.log('vscode-gitignore: access token succeeded');
+						await vscode.window.showInformationMessage('Acquired GitHub access token. Please try again.');
+					}
+					else {
+						console.log('vscode-gitignore: Acquiring access token failed');
+						await vscode.window.showErrorMessage('Acquiring GitHub access token cancelled or failed');
+					}
+				}
+				catch(error) {
+					console.log('vscode-gitignore: ', error);
+					await vscode.window.showErrorMessage(String(error));
+				}
 			}
 			else {
 				await vscode.window.showErrorMessage(String(error));

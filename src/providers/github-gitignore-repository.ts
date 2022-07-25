@@ -3,9 +3,10 @@ import * as fs from 'fs';
 import * as url from 'url';
 import { WriteStream } from 'fs';
 
-import { getAgent, getDefaultHeaders } from '../http-client';
+import { getAgent } from '../http-client';
 import { Cache, CacheItem } from '../cache';
-import { GitignoreProvider, GitignoreTemplate, GitignoreOperation, GitignoreOperationType, GithubApiRateLimitReached } from '../interfaces';
+import { GitignoreProvider, GitignoreTemplate, GitignoreOperation, GitignoreOperationType } from '../interfaces';
+import { checkRateLimit, getDefaultHeaders } from '../github-client';
 
 
 interface GithubRepositoryItem {
@@ -64,17 +65,15 @@ export class GithubGitignoreRepositoryProvider implements GitignoreProvider {
 				headers: {...getDefaultHeaders(), 'Accept': 'application/vnd.github.v3+json'},
 			};
 			const req = https.request(options, res => {
+				try {
+					checkRateLimit(res.headers);
+				}
+				catch(error) {
+					return reject(error);
+				}
+
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				const data : any[] = [];
-
-				const rateLimitRemaining = Number.parseInt(res.headers['x-ratelimit-remaining'] as string);
-				console.log(rateLimitRemaining);
-
-				// eslint-disable-next-line no-constant-condition
-				if(true /*ratelimitRemaining < 1*/) {
-					return reject(new GithubApiRateLimitReached('GitHub API ratelimit reached'));
-				}
-				console.log(`vscode-gitignore: Github API ratelimit remaining: ${res.headers['x-ratelimit-remaining']}`);
 
 				res.on('data', chunk => {
 					data.push(chunk);
@@ -142,7 +141,12 @@ export class GithubGitignoreRepositoryProvider implements GitignoreProvider {
 			};
 
 			const req = https.request(options, response => {
-				console.log(`vscode-gitignore: Github API ratelimit remaining: ${response.headers['x-ratelimit-remaining']}`);
+				try {
+					checkRateLimit(response.headers);
+				}
+				catch(error) {
+					return reject(error);
+				}
 
 				if(response.statusCode !== 200) {
 					return reject(new Error(`Download failed with status code ${response.statusCode}`));
@@ -194,7 +198,12 @@ export class GithubGitignoreRepositoryProvider implements GitignoreProvider {
 			};
 
 			const req = https.request(options, response => {
-				console.log(`vscode-gitignore: Github API ratelimit remaining: ${response.headers['x-ratelimit-remaining']}`);
+				try {
+					checkRateLimit(response.headers);
+				}
+				catch(error) {
+					return reject(error);
+				}
 
 				if(response.statusCode !== 200) {
 					return reject(new Error(`Download failed with status code ${response.statusCode}`));

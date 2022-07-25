@@ -6,7 +6,8 @@ import { WriteStream } from 'fs';
 
 import { Cache, CacheItem } from '../cache';
 import { GitignoreProvider, GitignoreTemplate, GitignoreOperation, GitignoreOperationType } from '../interfaces';
-import { getAgent, getDefaultHeaders } from '../http-client';
+import { getAgent } from '../http-client';
+import { checkRateLimit, getDefaultHeaders } from '../github-client';
 
 /**
  * Github gitignore template provider based on "/gitignore/templates" endpoint of the Github REST API
@@ -41,10 +42,15 @@ export class GithubGitignoreApiProvider implements GitignoreProvider {
 				headers: {...getDefaultHeaders(), 'Accept': 'application/vnd.github.v3+json'},
 			};
 			const req = https.request(options, res => {
+				try {
+					checkRateLimit(res.headers);
+				}
+				catch(error) {
+					return reject(error);
+				}
+
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				const data : any[] = [];
-
-				console.log(`vscode-gitignore: Github API ratelimit remaining: ${res.headers['x-ratelimit-remaining']}`);
 
 				res.on('data', chunk => {
 					data.push(chunk);
@@ -101,7 +107,12 @@ export class GithubGitignoreApiProvider implements GitignoreProvider {
 			};
 
 			const req = https.request(options, response => {
-				console.log(`vscode-gitignore: Github API ratelimit remaining: ${response.headers['x-ratelimit-remaining']}`);
+				try {
+					checkRateLimit(response.headers);
+				}
+				catch(error) {
+					return reject(error);
+				}
 
 				if(response.statusCode !== 200) {
 					return reject(new Error(`Download failed with status code ${response.statusCode}`));
@@ -150,7 +161,12 @@ export class GithubGitignoreApiProvider implements GitignoreProvider {
 			};
 
 			const req = https.request(options, response => {
-				console.log(`vscode-gitignore: Github API ratelimit remaining: ${response.headers['x-ratelimit-remaining']}`);
+				try {
+					checkRateLimit(response.headers);
+				}
+				catch(error) {
+					return reject(error);
+				}
 
 				if(response.statusCode !== 200) {
 					return reject(new Error(`Download failed with status code ${response.statusCode}`));
