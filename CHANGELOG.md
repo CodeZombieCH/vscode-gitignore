@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.10.0
+
+- Simplify `Cache` file and improve the code
 
 ## v0.9.0
 
