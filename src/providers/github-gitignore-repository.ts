@@ -44,7 +44,7 @@ export class GithubGitignoreRepositoryProvider implements GitignoreProvider {
 	private getFiles(path = ''): Promise<GitignoreTemplate[]> {
 		return new Promise((resolve, reject) => {
 			// If cached, return cached content
-			const item = this.cache.get('gitignore/' + path) as GitignoreTemplate[];
+			const item = this.cache.get('gitignore/' + path)?.value as GitignoreTemplate[];
 			if(typeof item !== 'undefined') {
 				resolve(item);
 				return;

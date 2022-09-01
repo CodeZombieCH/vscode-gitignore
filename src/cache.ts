@@ -5,27 +5,12 @@
  * but I had too much fun in implementing it on my own.
  */
 
-export interface CacheItemStore {
-	[key: string]: CacheItem;
-}
+type CacheItemStore = Map<string, CacheItem>;
 
 export class CacheItem {
-	private _key: string;
-	private _value: unknown;
-	private storeDate: Date;
+	private readonly storeDate: Date = new Date();
 
-	get key() {
-		return this._key;
-	}
-
-	get value() {
-		return this._value;
-	}
-
-	constructor(key: string, value: unknown) {
-		this._key = key;
-		this._value = value;
-		this.storeDate = new Date();
+	constructor(readonly key: string, readonly value: unknown) {
 	}
 
 	public isExpired(expirationInterval: number) {
@@ -34,45 +19,21 @@ export class CacheItem {
 }
 
 export class Cache {
-	/**
-	 * The key value store (a simple JavaScript object)
-	 */
-	private _store: CacheItemStore;
-	/**
-	 * Cache expiration intervall in seconds
-	 */
-	private _cacheExpirationInterval: number;
+	private store: CacheItemStore = new Map();
 
-	constructor(cacheExpirationInterval: number) {
-		this._store = {};
-		this._cacheExpirationInterval = cacheExpirationInterval;
+	constructor(readonly cacheExpirationInterval: number) {
 	}
 
-	public add(item: CacheItem) {
-		this._store[item.key] = item;
+	public add(item: CacheItem): void {
+		this.store.set(item.key, item);
 	}
 
-	public get(key: string) {
-		const item = this._store[key];
+	public get(key: string): CacheItem | undefined {
+		const item = this.store.get(key);
 
-		// Check expiration
-		if(typeof item === 'undefined' || item.isExpired(this._cacheExpirationInterval)) {
-			return undefined;
-		}
-		else {
-			return item.value;
-		}
-	}
-
-	public getCacheItem(key: string) {
-		const item = this._store[key];
-
-		// Check expiration
-		if(typeof item === 'undefined' || item.isExpired(this._cacheExpirationInterval)) {
-			return undefined;
-		}
-		else {
-			return item;
-		}
+		return typeof item === "undefined" ||
+			item.isExpired(this.cacheExpirationInterval)
+			? undefined
+			: item;
 	}
 }

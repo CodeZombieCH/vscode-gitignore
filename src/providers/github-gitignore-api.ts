@@ -22,7 +22,7 @@ export class GithubGitignoreApiProvider implements GitignoreProvider {
 	 */
 	public getTemplates(): Promise<GitignoreTemplate[]> {
 		// If cached, return cached content
-		const item = this.cache.get('gitignore') as GitignoreTemplate[];
+		const item = this.cache.get('gitignore')?.value as GitignoreTemplate[];
 		if(typeof item !== 'undefined') {
 			return Promise.resolve<GitignoreTemplate[]>(item);
 		}
