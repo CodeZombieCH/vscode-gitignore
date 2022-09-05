@@ -5,8 +5,6 @@
  * but I had too much fun in implementing it on my own.
  */
 
-type CacheItemStore = Map<string, CacheItem>;
-
 export class CacheItem {
 	readonly storeDate: Date = new Date();
 
@@ -19,7 +17,7 @@ export class CacheItem {
 }
 
 export class Cache {
-	private store: CacheItemStore = new Map();
+	private store = new Map<string, CacheItem>();
 
 	constructor(readonly cacheExpirationInterval: number) {
 	}
