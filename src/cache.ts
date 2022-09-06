@@ -6,7 +6,7 @@
  */
 
 export class CacheItem {
-	readonly storeDate: Date = new Date();
+	readonly storeDate = new Date();
 
 	constructor(readonly key: string, readonly value: unknown) {
 	}
@@ -29,9 +29,13 @@ export class Cache {
 	get(key: string): CacheItem | undefined {
 		const item = this.store.get(key);
 
-		return typeof item === "undefined" ||
-			item.isExpired(this.cacheExpirationInterval)
-			? undefined
-			: item;
+		if (
+			typeof item !== "undefined"
+			&& item.isExpired(this.cacheExpirationInterval)
+		) {
+			this.store.delete(key);
+			return undefined;
+		}
+		return item;
 	}
 }
