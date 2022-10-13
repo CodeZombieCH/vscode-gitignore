@@ -1,6 +1,6 @@
 # gitignore Extension for Visual Studio Code
 
-A extension for Visual Studio Code that assists you in working with `.gitignore` files.
+An extension for Visual Studio Code that assists you in working with `.gitignore` files.
 
 
 ## Features
