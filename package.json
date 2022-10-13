@@ -29,6 +29,7 @@
 		"onCommand:gitignore.addgitignore"
 	],
 	"main": "./dist/extension.js",
+	"browser": "./dist/extension-web.js",
 	"contributes": {
 		"commands": [
 			{
@@ -76,7 +77,10 @@
 		"watch-tests": "tsc -p . -w --outDir out",
 		"pretest": "npm run compile-tests && npm run compile && npm run lint",
 		"lint": "eslint src --ext ts",
-		"test": "node ./out/test/runTest.js"
+		"test": "node ./out/test/runTest.js",
+		"compile-web": "webpack",
+		"watch-web": "webpack --watch",
+		"package-web": "webpack --mode production --devtool hidden-source-map"
 	},
 	"devDependencies": {
 		"@types/glob": "^7.2.0",
