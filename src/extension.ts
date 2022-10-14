@@ -1,20 +1,14 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
-import { join as joinPath } from 'path';
 
 import { Cache } from './cache';
-import { GitignoreTemplate, GitignoreOperation, GitignoreOperationType, GitignoreProvider } from './interfaces';
+import { GitignoreQuickPickItem, GitignoreTemplate, GitignoreOperation, GitignoreOperationType, GitignoreProvider } from './interfaces';
 import { GithubGitignoreRepositoryProvider } from './providers/github-gitignore-repository';
 
 
 class CancellationError extends Error {
 
 }
-
-interface GitignoreQuickPickItem extends vscode.QuickPickItem {
-	template: GitignoreTemplate;
-}
-
 
 // Initialize
 const config = vscode.workspace.getConfiguration('gitignore');
@@ -41,20 +35,20 @@ async function resolveWorkspaceFolder(gitIgnoreTemplate: GitignoreTemplate) {
 		throw new CancellationError();
 	}
 	else if (folders.length === 1) {
-		return { template: gitIgnoreTemplate, path: folders[0].uri.fsPath };
+		return { template: gitIgnoreTemplate, uri: folders[0].uri };
 	}
 	else {
 		const folder = await vscode.window.showWorkspaceFolderPick();
 		if (!folder) {
 			throw new CancellationError();
 		}
-		return { template: gitIgnoreTemplate, path: folder.uri.fsPath };
+		return { template: gitIgnoreTemplate, uri: folder.uri };
 	}
 }
 
-function checkIfFileExists(path: string) {
+function checkIfFileExists(uri: vscode.Uri) {
 	return new Promise<boolean>((resolve) => {
-		fs.stat(path, (err) => {
+		fs.stat(uri.path, (err) => {
 			if (err) {
 				// File does not exists
 				return resolve(false);
@@ -64,13 +58,13 @@ function checkIfFileExists(path: string) {
 	});
 }
 
-async function checkExistenceAndPromptForOperation(path: string, template: GitignoreTemplate): Promise<GitignoreOperation> {
-	path = joinPath(path, '.gitignore');
+async function checkExistenceAndPromptForOperation(uri: vscode.Uri, template: GitignoreTemplate): Promise<GitignoreOperation> {
+	uri = vscode.Uri.joinPath(uri, ".gitignore");
 
-	const exists = await checkIfFileExists(path);
+	const exists = await checkIfFileExists(uri);
 	if (!exists) {
 		// File does not exists -> we are fine to create it
-		return { path, template, type: GitignoreOperationType.Overwrite };
+		return { uri, template, type: GitignoreOperationType.Overwrite };
 	}
 
 	const operation = await promptForOperation();
@@ -80,7 +74,7 @@ async function checkExistenceAndPromptForOperation(path: string, template: Gitig
 	const typedString = <keyof typeof GitignoreOperationType>operation.label;
 	const type = GitignoreOperationType[typedString];
 
-	return { path, template, type };
+	return { uri, template, type };
 }
 
 function promptForOperation() {
@@ -137,11 +131,11 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 
 			// Resolve the path to the folder where we should write the gitignore file
-			const { template, path } = await resolveWorkspaceFolder(selectedItem.template);
+			const { template, uri } = await resolveWorkspaceFolder(selectedItem.template);
 
 			// Calculate operation
-			console.log(`vscode-gitignore: add/append gitignore for directory: ${path}`);
-			const operation = await checkExistenceAndPromptForOperation(path, template);
+			console.log(`vscode-gitignore: add/append gitignore for directory: ${uri.fsPath}`);
+			const operation = await checkExistenceAndPromptForOperation(uri, template);
 
 			// Store the file on file system
 			await gitignoreRepository.download(operation);

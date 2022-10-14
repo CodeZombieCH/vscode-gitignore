@@ -1,5 +1,5 @@
 import { WriteStream } from "fs";
-
+import * as vscode from 'vscode';
 
 export interface GitignoreTemplate {
 	name: string;
@@ -8,10 +8,18 @@ export interface GitignoreTemplate {
 	type: string;
 }
 
-export interface GitignoreProvider {
+export interface GitignoreQuickPickItem extends vscode.QuickPickItem {
+	template: GitignoreTemplate;
+}
+
+
+export interface GitignoreProvider extends WebGitignoreProvider{
+	downloadToStream(operation: GitignoreOperation, stream: WriteStream): Promise<void>;
+}
+
+export interface WebGitignoreProvider {
 	getTemplates(): Promise<GitignoreTemplate[]>;
 	download(operation: GitignoreOperation): Promise<void>;
-	downloadToStream(operation: GitignoreOperation, stream: WriteStream): Promise<void>;
 }
 
 export enum GitignoreOperationType {
@@ -22,11 +30,12 @@ export enum GitignoreOperationType {
 export interface GitignoreOperation {
 	type: GitignoreOperationType;
 	/**
-	 * Path to the .gitignore file to write to
+	 * Uri to the .gitignore file to write to
 	 */
-	path: string;
+	uri: vscode.Uri;
 	/**
 	 * gitignore template file to use
 	 */
 	template: GitignoreTemplate;
 }
+

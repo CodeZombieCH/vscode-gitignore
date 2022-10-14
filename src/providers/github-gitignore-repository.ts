@@ -113,7 +113,7 @@ export class GithubGitignoreRepositoryProvider implements GitignoreProvider {
 	public download(operation: GitignoreOperation): Promise<void> {
 		return new Promise((resolve, reject) => {
 			const flags = operation.type === GitignoreOperationType.Overwrite ? 'w' : 'a';
-			const file = fs.createWriteStream(operation.path, { flags: flags });
+			const file = fs.createWriteStream(operation.uri.path, { flags: flags });
 
 			// If appending to the existing .gitignore file, write a NEWLINE as separator
 			if(flags === 'a') {
@@ -150,7 +150,7 @@ export class GithubGitignoreRepositoryProvider implements GitignoreProvider {
 			}).on('error', (err) => {
 				// Delete the .gitignore file if we created it
 				if(flags === 'w') {
-					fs.unlink(operation.path, err => {
+					fs.unlink(operation.uri.path, err => {
 						if(err) {
 							console.error(err.message);
 						}
