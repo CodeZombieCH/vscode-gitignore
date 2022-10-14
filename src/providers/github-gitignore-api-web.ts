@@ -1,12 +1,12 @@
 import * as vscode from 'vscode';
 
 import { Cache, CacheItem } from '../cache';
-import { WebGitignoreProvider, GitignoreTemplate, GitignoreOperation, GitignoreOperationType } from '../interfaces';
+import { GitignoreProvider, GitignoreTemplate, GitignoreOperation, GitignoreOperationType } from '../interfaces';
 /**
  * Github gitignore template provider based on "/gitignore/templates" endpoint of the Github REST API
  * https://docs.github.com/en/rest/gitignore
  */
-export class GithubGitignoreApiWebProvider implements WebGitignoreProvider {
+export class GithubGitignoreApiWebProvider implements GitignoreProvider {
 
     constructor(private cache: Cache) {
     }

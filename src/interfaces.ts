@@ -13,11 +13,11 @@ export interface GitignoreQuickPickItem extends vscode.QuickPickItem {
 }
 
 
-export interface GitignoreProvider extends WebGitignoreProvider{
+export interface StreamGitignoreProvider extends GitignoreProvider{
 	downloadToStream(operation: GitignoreOperation, stream: WriteStream): Promise<void>;
 }
 
-export interface WebGitignoreProvider {
+export interface GitignoreProvider {
 	getTemplates(): Promise<GitignoreTemplate[]>;
 	download(operation: GitignoreOperation): Promise<void>;
 }
@@ -39,3 +39,13 @@ export interface GitignoreOperation {
 	template: GitignoreTemplate;
 }
 
+export interface IGitignoreCreationWorkerContext
+{
+	gitignoreProvider: GitignoreProvider,
+	fileProvider: FileProvider,
+} 
+
+export interface FileProvider
+{
+	checkIfFileExists(uri: vscode.Uri) : Promise<boolean>;
+}

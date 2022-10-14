@@ -5,7 +5,7 @@ import { WriteStream } from 'fs';
 
 import { getAgent, getDefaultHeaders } from '../http-client';
 import { Cache, CacheItem } from '../cache';
-import { GitignoreProvider, GitignoreTemplate, GitignoreOperation, GitignoreOperationType } from '../interfaces';
+import { StreamGitignoreProvider, GitignoreTemplate, GitignoreOperation, GitignoreOperationType } from '../interfaces';
 
 
 interface GithubRepositoryItem {
@@ -19,7 +19,7 @@ interface GithubRepositoryItem {
  * Github gitignore template provider based on the "/repos" endpoint of the Github REST API
  * https://docs.github.com/en/rest/repos/contents
  */
-export class GithubGitignoreRepositoryProvider implements GitignoreProvider {
+export class GithubGitignoreRepositoryProvider implements StreamGitignoreProvider {
 
 	constructor(private cache: Cache) {
 	}
@@ -113,7 +113,7 @@ export class GithubGitignoreRepositoryProvider implements GitignoreProvider {
 	public download(operation: GitignoreOperation): Promise<void> {
 		return new Promise((resolve, reject) => {
 			const flags = operation.type === GitignoreOperationType.Overwrite ? 'w' : 'a';
-			const file = fs.createWriteStream(operation.uri.path, { flags: flags });
+			const file = fs.createWriteStream(operation.uri.fsPath, { flags: flags });
 
 			// If appending to the existing .gitignore file, write a NEWLINE as separator
 			if(flags === 'a') {
@@ -150,7 +150,7 @@ export class GithubGitignoreRepositoryProvider implements GitignoreProvider {
 			}).on('error', (err) => {
 				// Delete the .gitignore file if we created it
 				if(flags === 'w') {
-					fs.unlink(operation.uri.path, err => {
+					fs.unlink(operation.uri.fsPath, err => {
 						if(err) {
 							console.error(err.message);
 						}

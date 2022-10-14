@@ -6,14 +6,14 @@ import * as vscode from 'vscode';
 import { Writable } from 'stream';
 
 import { Cache } from '../../../cache';
-import { GitignoreProvider, GitignoreOperation, GitignoreTemplate, GitignoreOperationType } from '../../../interfaces';
+import { StreamGitignoreProvider, GitignoreOperation, GitignoreTemplate, GitignoreOperationType } from '../../../interfaces';
 import { GithubGitignoreApiProvider } from '../../../providers/github-gitignore-api';
 import { GithubGitignoreRepositoryProvider } from '../../../providers/github-gitignore-repository';
 
 
 function fileExits(uri: vscode.Uri): Promise<boolean> {
 	return new Promise((resolve) => {
-		fs.stat(uri.path, (err) => {
+		fs.stat(uri.fsPath, (err) => {
 			if(err) {
 				return resolve(false);
 			}
@@ -34,7 +34,7 @@ function createTmpTestDir(prefix: string): Promise<string> {
 }
 
 
-const providers: GitignoreProvider[] = [
+const providers: StreamGitignoreProvider[] = [
 	new GithubGitignoreRepositoryProvider(new Cache(0)),
 	new GithubGitignoreApiProvider(new Cache(0)),
 ];
@@ -106,7 +106,7 @@ providers.forEach(provider => {
 			const fileExists = await fileExits(operation.uri);
 			assert(fileExists);
 
-			const content = fs.readFileSync(operation.uri.path, {encoding: 'utf8'});
+			const content = fs.readFileSync(operation.uri.fsPath, {encoding: 'utf8'});
 			const lines = content.split(/\r?\n/);
 
 			assert(lines[0] === '# Prerequisites');
