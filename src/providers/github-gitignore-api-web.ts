@@ -15,8 +15,6 @@ export class GithubGitignoreApiWebProvider implements GitignoreProvider {
      * Get all .gitignore templates
      */
     public async getTemplates(): Promise<GitignoreTemplate[]> {
-        console.log("getTemplates");
-
         // If cached, return cached content
         const item = this.cache.get('gitignore') as GitignoreTemplate[];
         if (typeof item !== 'undefined') {
@@ -51,7 +49,6 @@ export class GithubGitignoreApiWebProvider implements GitignoreProvider {
      */
     public async download(operation: GitignoreOperation): Promise<void> {
         try {
-            console.log("downloading file");
             const newGitIgnoreFile = await this.getGitignoreFile(operation.template.name);
             const uri = operation.uri;
 
@@ -65,8 +62,6 @@ export class GithubGitignoreApiWebProvider implements GitignoreProvider {
             else {
                 throw Error("Unknown option");
             }
-            console.log("before replacing file");
-            console.log("URI:" + uri)
             await this.replaceFile(uri, finalFile);
         }
         catch (err) {

@@ -53,12 +53,15 @@ const webConfig = {
   target: 'webworker', // vscode extensions run in a Node.js-context 📖 -> https://webpack.js.org/configuration/node/
   mode: 'none', // this leaves the source code as close as possible to the original (when packaging we set this to 'production')
 
-  entry: './src/extension-web.ts', // the entry point of this extension, 📖 -> https://webpack.js.org/configuration/entry-context/
-  output: {
-    // the bundle is stored in the 'dist' folder (check package.json), 📖 -> https://webpack.js.org/configuration/output/
-    path: path.resolve(__dirname, 'dist'),
-    filename: 'extension-web.js',
-    libraryTarget: 'commonjs2'
+  entry: { // the entry point of this extension, 📖 -> https://webpack.js.org/configuration/entry-context/
+    'extension-web': './src/web/extension-web.ts',
+    'test/suite/index': './src/web/test/suite/index.ts'
+  },
+  output: { // the bundle is stored in the 'dist/web' folder (check package.json), 📖 -> https://webpack.js.org/configuration/output/
+    filename: '[name].js',
+    path: path.join(__dirname, './dist/web'),
+    libraryTarget: 'commonjs',
+    devtoolModuleFilenameTemplate: '../../[resource-path]'
   },
   externals: {
     vscode: 'commonjs vscode' // the vscode-module is created on-the-fly and must be excluded. Add other modules that cannot be webpack'ed, 📖 -> https://webpack.js.org/configuration/externals/
@@ -75,7 +78,7 @@ const webConfig = {
       // Webpack 5 no longer polyfills Node.js core modules automatically.
       // see https://webpack.js.org/configuration/resolve/#resolvefallback
       // for the list of Node.js core module polyfills.
-      'assert': require.resolve('assert')
+      assert: require.resolve('assert')
     }
   },
   module: {

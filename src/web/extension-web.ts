@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
 
-import { Cache } from './cache';
-import { GitignoreCreationWorker } from './gitignore-creation-worker';
-import { GitignoreProvider } from './interfaces';
-import { WebFileProvider } from './providers/file-provider-web';
-import { GithubGitignoreApiWebProvider } from './providers/github-gitignore-api-web';
+import { Cache } from '../cache';
+import { GitignoreCreationWorker } from '../gitignore-creation-worker';
+import { GitignoreProvider } from '../interfaces';
+import { WebFileProvider } from '../providers/file-provider-web';
+import { GithubGitignoreApiWebProvider } from '../providers/github-gitignore-api-web';
 
 // Initialize
 const config = vscode.workspace.getConfiguration('gitignore');
