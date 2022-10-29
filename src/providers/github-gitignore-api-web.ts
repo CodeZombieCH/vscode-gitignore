@@ -51,7 +51,7 @@ export class GithubGitignoreApiWebProvider implements GitignoreProvider {
         try {
             const newGitIgnoreFile = await this.getGitignoreFile(operation.template.name);
             const uri = operation.uri;
-
+            
             let finalFile: Uint8Array;
             if (operation.type === GitignoreOperationType.Append) {
                 finalFile = await this.getAppendedFile(uri, newGitIgnoreFile);
@@ -65,7 +65,11 @@ export class GithubGitignoreApiWebProvider implements GitignoreProvider {
             await this.replaceFile(uri, finalFile);
         }
         catch (err) {
-            // TODO
+            // Delete the .gitignore file if we created it
+            if(operation.type === GitignoreOperationType.Overwrite)
+            {
+                vscode.workspace.fs.delete(operation.uri);
+            }
         };
 
     }
