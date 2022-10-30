@@ -21,7 +21,7 @@ export function activate(context: vscode.ExtensionContext) {
     console.log('vscode-gitignore: extension is now active!');
 
     const disposable = vscode.commands.registerCommand('gitignore.addgitignore', async () => {
-        gitignoreCreationWorker.createGitignore();
+        await gitignoreCreationWorker.createGitignore();
     });
 
     context.subscriptions.push(disposable);

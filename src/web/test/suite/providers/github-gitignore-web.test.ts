@@ -7,7 +7,7 @@ import { GitignoreOperation, GitignoreOperationType, GitignoreProvider, Gitignor
 
 
 async function fileExits(uri: vscode.Uri): Promise<boolean> {
-    return vscode.workspace.fs.stat(uri).then(_x => true, _err => false);
+    return vscode.workspace.fs.stat(uri).then(() => true, () => false);
 }
 
 const providers: GitignoreProvider[] = [
@@ -51,5 +51,5 @@ providers.forEach(provider => {
             assert(lines[1] === '*.d');
             assert(lines[2] === '');
         });
-    })
+    });
 });

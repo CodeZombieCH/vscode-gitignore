@@ -52,6 +52,9 @@ export class GitignoreCreationWorker {
             // Store the file on file system
             await this.gitignoreProvider.download(operation);
 
+			// Refresh file explorer
+			await vscode.commands.executeCommand('workbench.files.action.refreshFilesExplorer');
+
             // Show success message
             await this.showSuccessMessage(operation);
         }

@@ -51,7 +51,7 @@ export class GithubGitignoreApiWebProvider implements GitignoreProvider {
         try {
             const newGitIgnoreFile = await this.getGitignoreFile(operation.template.name);
             const uri = operation.uri;
-            
+
             let finalFile: Uint8Array;
             if (operation.type === GitignoreOperationType.Append) {
                 finalFile = await this.getAppendedFile(uri, newGitIgnoreFile);
@@ -68,9 +68,9 @@ export class GithubGitignoreApiWebProvider implements GitignoreProvider {
             // Delete the .gitignore file if we created it
             if(operation.type === GitignoreOperationType.Overwrite)
             {
-                vscode.workspace.fs.delete(operation.uri);
+                await vscode.workspace.fs.delete(operation.uri);
             }
-        };
+        }
 
     }
 
@@ -78,11 +78,11 @@ export class GithubGitignoreApiWebProvider implements GitignoreProvider {
         const currentContent = await vscode.workspace.fs.readFile(uri);
         const textEncoder = new TextEncoder();
         const newLine = textEncoder.encode('\n');
-        return this.mergeDocuments(currentContent, newLine, newContent)
+        return this.mergeDocuments(currentContent, newLine, newContent);
     }
 
     private mergeDocuments(first: Uint8Array, second: Uint8Array, third: Uint8Array) {
-        var mergedArray = new Uint8Array(first.length + second.length + third.length);
+        const mergedArray = new Uint8Array(first.length + second.length + third.length);
         mergedArray.set(first);
         mergedArray.set(second, first.length);
         mergedArray.set(third, first.length + second.length);
