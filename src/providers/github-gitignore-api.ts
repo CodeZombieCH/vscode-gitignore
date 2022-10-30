@@ -5,14 +5,14 @@ import { WriteStream } from 'fs';
 
 
 import { Cache, CacheItem } from '../cache';
-import { GitignoreProvider, GitignoreTemplate, GitignoreOperation, GitignoreOperationType } from '../interfaces';
+import { StreamGitignoreProvider, GitignoreTemplate, GitignoreOperation, GitignoreOperationType } from '../interfaces';
 import { getAgent, getDefaultHeaders } from '../http-client';
 
 /**
  * Github gitignore template provider based on "/gitignore/templates" endpoint of the Github REST API
  * https://docs.github.com/en/rest/gitignore
  */
-export class GithubGitignoreApiProvider implements GitignoreProvider {
+export class GithubGitignoreApiProvider implements StreamGitignoreProvider {
 
 	constructor(private cache: Cache) {
 	}
@@ -79,7 +79,7 @@ export class GithubGitignoreApiProvider implements GitignoreProvider {
 	public download(operation: GitignoreOperation): Promise<void> {
 		return new Promise((resolve, reject) => {
 			const flags = operation.type === GitignoreOperationType.Overwrite ? 'w' : 'a';
-			const file = fs.createWriteStream(operation.path, { flags: flags });
+			const file = fs.createWriteStream(operation.uri.fsPath, { flags: flags });
 
 			// If appending to the existing .gitignore file, write a NEWLINE as separator
 			if(flags === 'a') {
@@ -116,7 +116,7 @@ export class GithubGitignoreApiProvider implements GitignoreProvider {
 			}).on('error', (err) => {
 				// Delete the .gitignore file if we created it
 				if(flags === 'w') {
-					fs.unlink(operation.path, err => {
+					fs.unlink(operation.uri.fsPath, err => {
 						if(err) {
 							console.error(err.message);
 						}
@@ -165,7 +165,7 @@ export class GithubGitignoreApiProvider implements GitignoreProvider {
 			}).on('error', (err) => {
 				// Delete the .gitignore file if we created it
 				if(operation.type === GitignoreOperationType.Overwrite) {
-					fs.unlink(operation.path, err => {
+					fs.unlink(operation.uri.fsPath, err => {
 						if(err) {
 							console.error(err.message);
 						}
