@@ -1,5 +1,4 @@
-import { WriteStream } from "fs";
-
+import * as fs from 'fs';
 
 export interface GitignoreTemplate {
 	name: string;
@@ -11,7 +10,7 @@ export interface GitignoreTemplate {
 export interface GitignoreProvider {
 	getTemplates(): Promise<GitignoreTemplate[]>;
 	download(operation: GitignoreOperation): Promise<void>;
-	downloadToStream(operation: GitignoreOperation, stream: WriteStream): Promise<void>;
+	downloadToStream(operation: GitignoreOperation, stream: fs.WriteStream): Promise<void>;
 }
 
 export enum GitignoreOperationType {
@@ -29,4 +28,8 @@ export interface GitignoreOperation {
 	 * gitignore template file to use
 	 */
 	template: GitignoreTemplate;
+	/**
+	 * If the file already exists, then the stats of the file.
+	 */
+	stats?: fs.Stats;
 }

@@ -116,7 +116,7 @@ export class GithubGitignoreRepositoryProvider implements GitignoreProvider {
 			const file = fs.createWriteStream(operation.path, { flags: flags });
 
 			// If appending to the existing .gitignore file, write a NEWLINE as separator
-			if(flags === 'a') {
+			if(flags === 'a' && operation.stats?.size !== 0) {
 				file.write('\n');
 			}
 

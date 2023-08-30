@@ -6,7 +6,6 @@ import { Cache } from './cache';
 import { GitignoreTemplate, GitignoreOperation, GitignoreOperationType, GitignoreProvider } from './interfaces';
 import { GithubGitignoreRepositoryProvider } from './providers/github-gitignore-repository';
 
-
 class CancellationError extends Error {
 
 }
@@ -15,15 +14,13 @@ interface GitignoreQuickPickItem extends vscode.QuickPickItem {
 	template: GitignoreTemplate;
 }
 
-
 // Initialize
 const config = vscode.workspace.getConfiguration('gitignore');
 const cache = new Cache(config.get('cacheExpirationInterval', 3600));
 
 // Create gitignore repository provider
 const gitignoreRepository: GitignoreProvider = new GithubGitignoreRepositoryProvider(cache);
-//const gitignoreRepository : GitignoreProvider = new GithubGitignoreApiProvider(cache);
-
+// const gitignoreRepository: GitignoreProvider = new GithubGitignoreApiProvider(cache);
 
 /**
  * Resolves the workspace folder by
@@ -52,14 +49,14 @@ async function resolveWorkspaceFolder(gitIgnoreTemplate: GitignoreTemplate) {
 	}
 }
 
-function checkIfFileExists(path: string) {
-	return new Promise<boolean>((resolve) => {
-		fs.stat(path, (err) => {
+function getFileStats(path: string) {
+	return new Promise<fs.Stats | false>((resolve) => {
+		fs.stat(path, (err, stats) => {
 			if (err) {
 				// File does not exists
 				return resolve(false);
 			}
-			return resolve(true);
+			return resolve(stats);
 		});
 	});
 }
@@ -67,8 +64,8 @@ function checkIfFileExists(path: string) {
 async function checkExistenceAndPromptForOperation(path: string, template: GitignoreTemplate): Promise<GitignoreOperation> {
 	path = joinPath(path, '.gitignore');
 
-	const exists = await checkIfFileExists(path);
-	if (!exists) {
+	const stats = await getFileStats(path);
+	if (!stats) {
 		// File does not exists -> we are fine to create it
 		return { path, template, type: GitignoreOperationType.Overwrite };
 	}
@@ -80,7 +77,7 @@ async function checkExistenceAndPromptForOperation(path: string, template: Gitig
 	const typedString = <keyof typeof GitignoreOperationType>operation.label;
 	const type = GitignoreOperationType[typedString];
 
-	return { path, template, type };
+	return { path, template, type, stats };
 }
 
 function promptForOperation() {
@@ -128,6 +125,7 @@ export function activate(context: vscode.ExtensionContext) {
 				url: t.download_url,
 				template: t
 			});
+
 			// TODO: use thenable for items
 			const selectedItem = await vscode.window.showQuickPick(items);
 
