@@ -1,3 +1,4 @@
+import * as vscode from 'vscode';
 import * as https from 'https';
 import * as fs from 'fs';
 import * as url from 'url';
@@ -118,6 +119,13 @@ export class GithubGitignoreRepositoryProvider implements GitignoreProvider {
 			// If appending to the existing .gitignore file, write a NEWLINE as separator
 			if(flags === 'a') {
 				file.write('\n');
+			}
+
+			const config = vscode.workspace.getConfiguration('gitignore');
+			const includeUrl = config.get('includeUrl', false);
+
+			if (includeUrl) {
+				file.write(`# https://github.com/github/gitignore/blob/main/${operation.template.path}\n`);
 			}
 
 			/*

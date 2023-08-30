@@ -6,7 +6,6 @@ import { Cache } from './cache';
 import { GitignoreTemplate, GitignoreOperation, GitignoreOperationType, GitignoreProvider } from './interfaces';
 import { GithubGitignoreRepositoryProvider } from './providers/github-gitignore-repository';
 
-
 class CancellationError extends Error {
 
 }
@@ -15,15 +14,13 @@ interface GitignoreQuickPickItem extends vscode.QuickPickItem {
 	template: GitignoreTemplate;
 }
 
-
 // Initialize
 const config = vscode.workspace.getConfiguration('gitignore');
 const cache = new Cache(config.get('cacheExpirationInterval', 3600));
 
 // Create gitignore repository provider
 const gitignoreRepository: GitignoreProvider = new GithubGitignoreRepositoryProvider(cache);
-//const gitignoreRepository : GitignoreProvider = new GithubGitignoreApiProvider(cache);
-
+// const gitignoreRepository: GitignoreProvider = new GithubGitignoreApiProvider(cache);
 
 /**
  * Resolves the workspace folder by

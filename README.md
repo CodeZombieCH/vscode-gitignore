@@ -20,8 +20,10 @@ Start command palette (with <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> or <kb
 
 ```JavaScript
 {
-    // Number of seconds the list of `.gitignore` files retrieved from github will be cached
-    "gitignore.cacheExpirationInterval": 3600
+	// Number of seconds the list of `.gitignore` files retrieved from GitHub will be cached.
+	"gitignore.cacheExpirationInterval": 3600,
+	// Prepend a comment with the URL to the file on GitHub.
+	"gitignore.includeUrl": false
 }
 ```
 

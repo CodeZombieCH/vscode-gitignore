@@ -1,8 +1,8 @@
+import * as vscode from 'vscode';
 import * as https from 'https';
 import * as fs from 'fs';
 import * as url from 'url';
 import { WriteStream } from 'fs';
-
 
 import { Cache, CacheItem } from '../cache';
 import { GitignoreProvider, GitignoreTemplate, GitignoreOperation, GitignoreOperationType } from '../interfaces';
@@ -84,6 +84,13 @@ export class GithubGitignoreApiProvider implements GitignoreProvider {
 			// If appending to the existing .gitignore file, write a NEWLINE as separator
 			if(flags === 'a') {
 				file.write('\n');
+			}
+
+			const config = vscode.workspace.getConfiguration('gitignore');
+			const includeUrl = config.get('includeUrl', false);
+
+			if (includeUrl) {
+				file.write(`# https://github.com/github/gitignore/blob/main/${operation.template.path}\n`);
 			}
 
 			/*

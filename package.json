@@ -43,7 +43,12 @@
 				"gitignore.cacheExpirationInterval": {
 					"type": "integer",
 					"default": 3600,
-					"description": "Number of seconds the list of `.gitignore` files retrieved from github will be cached"
+					"description": "Number of seconds the list of `.gitignore` files retrieved from GitHub will be cached."
+				},
+				"gitignore.includeUrl": {
+					"type": "boolean",
+					"default": false,
+					"description": "Prepend a comment with the URL to the file on GitHub."
 				}
 			}
 		},
@@ -76,7 +81,8 @@
 		"watch-tests": "tsc -p . -w --outDir out",
 		"pretest": "npm run compile-tests && npm run compile && npm run lint",
 		"lint": "eslint src --ext ts",
-		"test": "node ./out/test/runTest.js"
+		"test": "node ./out/test/runTest.js",
+		"test:headless": "xvfb-run -a npm run test"
 	},
 	"devDependencies": {
 		"@types/glob": "^7.2.0",
