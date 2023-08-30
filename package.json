@@ -1,7 +1,7 @@
 {
 	"name": "gitignore",
-	"displayName": "gitignore",
-	"description": "Lets you pull .gitignore templates from the https://github.com/github/gitignore repository. Language support for .gitignore files.",
+	"displayName": "%displayName%",
+	"description": "%description%",
 	"version": "0.9.0",
 	"author": "Marc-André Bühler",
 	"publisher": "codezombiech",
@@ -38,12 +38,12 @@
 		],
 		"configuration": {
 			"type": "object",
-			"title": "gitignore extension configuration",
+			"title": "%config.title%",
 			"properties": {
 				"gitignore.cacheExpirationInterval": {
 					"type": "integer",
 					"default": 3600,
-					"description": "Number of seconds the list of `.gitignore` files retrieved from github will be cached"
+					"description": "%config.cacheExpirationInterval%"
 				}
 			}
 		},
