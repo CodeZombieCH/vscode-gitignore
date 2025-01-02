@@ -8,6 +8,7 @@ import { Cache } from '../../../cache';
 import { GitignoreProvider, GitignoreOperation, GitignoreTemplate, GitignoreOperationType } from '../../../interfaces';
 import { GithubGitignoreApiProvider } from '../../../providers/github-gitignore-api';
 import { GithubGitignoreRepositoryProvider } from '../../../providers/github-gitignore-repository';
+import { GithubSession } from '../../../github/session';
 
 
 function fileExits(path: string): Promise<boolean> {
@@ -34,8 +35,8 @@ function createTmpTestDir(prefix: string): Promise<string> {
 
 
 const providers: GitignoreProvider[] = [
-	new GithubGitignoreRepositoryProvider(new Cache(0)),
-	new GithubGitignoreApiProvider(new Cache(0)),
+	new GithubGitignoreRepositoryProvider(new Cache(0), new GithubSession()),
+	new GithubGitignoreApiProvider(new Cache(0), new GithubSession()),
 ];
 
 /**

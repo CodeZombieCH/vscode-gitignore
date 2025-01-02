@@ -39,7 +39,7 @@ export class Cache {
 	 */
 	private _store: CacheItemStore;
 	/**
-	 * Cache expiration intervall in seconds
+	 * Cache expiration interval in seconds
 	 */
 	private _cacheExpirationInterval: number;
 
