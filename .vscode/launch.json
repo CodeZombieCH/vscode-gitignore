@@ -11,6 +11,7 @@
 			"request": "launch",
 			"args": [
 				"${workspaceFolder}/test-workspaces/single-file/file.txt",
+				"--disable-extensions",
 				"--extensionDevelopmentPath=${workspaceFolder}"
 			],
 			"outFiles": [
@@ -24,6 +25,7 @@
 			"request": "launch",
 			"args": [
 				"${workspaceFolder}/test-workspaces/single-root",
+				"--disable-extensions",
 				"--extensionDevelopmentPath=${workspaceFolder}"
 			],
 			"outFiles": [
@@ -37,6 +39,7 @@
 			"request": "launch",
 			"args": [
 				"${workspaceFolder}/test-workspaces/multi-root/test.code-workspace",
+				"--disable-extensions",
 				"--extensionDevelopmentPath=${workspaceFolder}"
 			],
 			"outFiles": [

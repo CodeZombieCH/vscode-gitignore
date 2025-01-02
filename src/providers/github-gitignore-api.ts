@@ -6,8 +6,8 @@ import { WriteStream } from 'fs';
 
 import { Cache, CacheItem } from '../cache';
 import { GitignoreProvider, GitignoreTemplate, GitignoreOperation, GitignoreOperationType } from '../interfaces';
-import { getAgent } from '../http-client';
-import { checkRateLimit, getDefaultHeaders } from '../github-client';
+import { getAgent, getDefaultHeaders } from '../http-client';
+import { GithubSession } from '../github/session';
 
 /**
  * Github gitignore template provider based on "/gitignore/templates" endpoint of the Github REST API
@@ -15,7 +15,7 @@ import { checkRateLimit, getDefaultHeaders } from '../github-client';
  */
 export class GithubGitignoreApiProvider implements GitignoreProvider {
 
-	constructor(private cache: Cache) {
+	constructor(private cache: Cache, private githubSession: GithubSession) {
 	}
 
 	/**
@@ -39,11 +39,11 @@ export class GithubGitignoreApiProvider implements GitignoreProvider {
 				method: 'GET',
 				hostname: 'api.github.com',
 				path: '/gitignore/templates',
-				headers: {...getDefaultHeaders(), 'Accept': 'application/vnd.github.v3+json'},
+				headers: {...this.getHeaders(), 'Accept': 'application/vnd.github.v3+json'},
 			};
 			const req = https.request(options, res => {
 				try {
-					checkRateLimit(res.headers);
+					this.githubSession.checkRateLimit(res.headers);
 				}
 				catch(error) {
 					return reject(error);
@@ -103,12 +103,12 @@ export class GithubGitignoreApiProvider implements GitignoreProvider {
 				method: 'GET',
 				hostname: fullUrl.hostname,
 				path: fullUrl.pathname,
-				headers: {...getDefaultHeaders(), 'Accept': 'application/vnd.github.v3.raw'}
+				headers: {...this.getHeaders(), 'Accept': 'application/vnd.github.v3.raw'}
 			};
 
 			const req = https.request(options, response => {
 				try {
-					checkRateLimit(response.headers);
+					this.githubSession.checkRateLimit(response.headers);
 				}
 				catch(error) {
 					return reject(error);
@@ -157,12 +157,12 @@ export class GithubGitignoreApiProvider implements GitignoreProvider {
 				method: 'GET',
 				hostname: fullUrl.hostname,
 				path: fullUrl.pathname,
-				headers: {...getDefaultHeaders(), 'Accept': 'application/vnd.github.v3.raw'}
+				headers: {...this.getHeaders(), 'Accept': 'application/vnd.github.v3.raw'}
 			};
 
 			const req = https.request(options, response => {
 				try {
-					checkRateLimit(response.headers);
+					this.githubSession.checkRateLimit(response.headers);
 				}
 				catch(error) {
 					return reject(error);
@@ -192,5 +192,15 @@ export class GithubGitignoreApiProvider implements GitignoreProvider {
 
 			req.end();
 		});
+	}
+
+	private getHeaders() {
+		// Get default HTTP client headers
+		let headers = getDefaultHeaders();
+
+		// Get GitHub session headers
+		headers = {...headers, ...this.githubSession.getHeaders()};
+
+		return headers;
 	}
 }
