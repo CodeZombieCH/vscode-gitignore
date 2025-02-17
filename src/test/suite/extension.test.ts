@@ -16,10 +16,6 @@ class GitignoreProviderMock implements GitignoreProvider {
 			type: 'foo'
 		}]);
 	}
-	download(operation: GitignoreOperation): Promise<void> {
-		console.log(operation);
-		throw new Error('Method not implemented.');
-	}
 	downloadToStream(templatePath: string, writeStream: fs.WriteStream): Promise<void> {
 		return new Promise((resolve) => {
 			writeStream.write(templatePath + "\n");

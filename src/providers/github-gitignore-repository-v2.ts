@@ -5,7 +5,7 @@ import { WriteStream } from 'fs';
 
 import { getAgent, getDefaultHeaders } from '../http-client';
 import { Cache, CacheItem } from '../cache';
-import { GitignoreProvider, GitignoreTemplate, GitignoreOperation, GitignoreOperationType } from '../interfaces';
+import { GitignoreProvider, GitignoreTemplate } from '../interfaces';
 import { GithubSession } from '../github/session';
 
 
@@ -82,35 +82,6 @@ export class GithubGitignoreRepositoryProviderV2 implements GitignoreProvider {
 		this.cache.add(new CacheItem('gitignore/' + path, templates));
 
 		return templates;
-	}
-
-	/**
-	 * Downloads a .gitignore from the repository to the path passed
-	 */
-	public async download(operation: GitignoreOperation): Promise<void> {
-		const flags = operation.type === GitignoreOperationType.Overwrite ? 'w' : 'a';
-		const file = fs.createWriteStream(operation.path, { flags: flags });
-
-		// If appending to the existing .gitignore file, write a NEWLINE as separator
-		if(flags === 'a') {
-			file.write('\n');
-		}
-
-		try {
-			await this.downloadToStream(operation.template.path, file);
-		}
-		catch(error) {
-			// Delete the .gitignore file if we created it
-			if(flags === 'w') {
-				fs.unlink(operation.path, err => {
-					if(err) {
-						console.error(err.message);
-					}
-				});
-			}
-
-			throw error;
-		}
 	}
 
 	/**
