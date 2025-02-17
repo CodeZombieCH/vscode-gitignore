@@ -11,7 +11,7 @@ export interface GitignoreTemplate {
 export interface GitignoreProvider {
 	getTemplates(): Promise<GitignoreTemplate[]>;
 	download(operation: GitignoreOperation): Promise<void>;
-	downloadToStream(operation: GitignoreOperation, stream: WriteStream): Promise<void>;
+	downloadToStream(templatePath: string, writeStream: WriteStream): Promise<void>;
 }
 
 export enum GitignoreOperationType {

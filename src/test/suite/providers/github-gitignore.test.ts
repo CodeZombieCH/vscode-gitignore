@@ -1,14 +1,13 @@
 import * as assert from 'assert';
 import * as fs from 'fs';
-import * as path from 'path';
-import * as os from 'os';
 import { Writable } from 'stream';
 
 import { Cache } from '../../../cache';
 import { GitignoreProvider, GitignoreOperation, GitignoreTemplate, GitignoreOperationType } from '../../../interfaces';
 import { GithubGitignoreApiProvider } from '../../../providers/github-gitignore-api';
-import { GithubGitignoreRepositoryProvider } from '../../../providers/github-gitignore-repository';
-import { GithubSession } from '../../../github/session';
+import { GithubGitignoreRepositoryProviderV2 } from '../../../providers/github-gitignore-repository-v2';
+import { GithubContext, GithubSession } from '../../../github/session';
+import { createTmpTestDir } from '../../utils';
 
 
 function fileExits(path: string): Promise<boolean> {
@@ -22,21 +21,12 @@ function fileExits(path: string): Promise<boolean> {
 	});
 }
 
-function createTmpTestDir(prefix: string): Promise<string> {
-	return new Promise((resolve, reject) => {
-		fs.mkdtemp(path.join(os.tmpdir(), prefix), (err, directory) => {
-			if (err) {
-				reject(err);
-			}
-			return resolve(directory);
-		});
-	});
-}
+
 
 
 const providers: GitignoreProvider[] = [
-	new GithubGitignoreRepositoryProvider(new Cache(0), new GithubSession()),
-	new GithubGitignoreApiProvider(new Cache(0), new GithubSession()),
+	new GithubGitignoreRepositoryProviderV2(new Cache(0), new GithubSession(new GithubContext())),
+	new GithubGitignoreApiProvider(new Cache(0), new GithubSession(new GithubContext())),
 ];
 
 /**
@@ -131,7 +121,7 @@ providers.forEach(provider => {
 			};
 
 			// Act
-			await provider.downloadToStream(operation, memoryStream);
+			await provider.downloadToStream(operation.template.path, memoryStream);
 
 			// Assert
 			const content = memoryStream.content;
@@ -156,7 +146,7 @@ providers.forEach(provider => {
 			};
 
 			// Act
-			await provider.downloadToStream(operation, memoryStream);
+			await provider.downloadToStream(operation.template.path, memoryStream);
 
 			// Assert
 			const content = memoryStream.content;
@@ -188,7 +178,7 @@ providers.forEach(provider => {
 			};
 
 			// Act
-			await provider.downloadToStream(operation, memoryStream);
+			await provider.downloadToStream(operation.template.path, memoryStream);
 
 			// Assert
 			const content = memoryStream.content;
@@ -219,7 +209,7 @@ providers.forEach(provider => {
 			};
 
 			// Act
-			await provider.downloadToStream(operation, memoryStream);
+			await provider.downloadToStream(operation.template.path, memoryStream);
 
 			// Assert
 			const content = memoryStream.content;

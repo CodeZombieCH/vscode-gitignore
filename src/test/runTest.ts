@@ -12,11 +12,8 @@ async function main() {
 		// Passed to --extensionTestsPath
 		const extensionTestsPath = path.resolve(__dirname, './suite/index');
 
-		// Download VS Code, unzip it and run the integration test
-		await runTests({ extensionDevelopmentPath, extensionTestsPath });
-
 		/**
-		 * Use 1.18.0 release for testing (lowers API level supported)
+		 * Use 1.18.0 release for testing (lowest API level supported)
 		 *
 		 * WARNING: This won't work with current operating systems
 		 *
@@ -28,11 +25,13 @@ async function main() {
 		 *    (code:20592): Pango-ERROR **: 18:27:30.534: Harfbuzz version too old (1.4.2)
 		 *    ==> giving up here as 1.18.0 is from October 2017
 		 */
-		// await runTests({
-		// 	version: '1.18.0',
-		// 	extensionDevelopmentPath,
-		// 	extensionTestsPath,
-		// });
+
+		// Download VS Code, unzip it and run the integration test
+		await runTests({
+			version: '1.48.2', // latest version of the lowest API level supported
+			extensionDevelopmentPath,
+			extensionTestsPath,
+		});
 	} catch (err) {
 		console.error('Failed to run tests');
 		process.exit(1);
