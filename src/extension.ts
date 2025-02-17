@@ -21,7 +21,8 @@ interface GitignoreQuickPickItem extends vscode.QuickPickItem {
 // The cache is the only instance shared across the whole lifetime of the extension
 // Everything else should be scoped to the invocation of a command
 const cache = createCache();
-
+// NOOP: Silence stupid eslint
+createNeverUsedCache();
 
 function createCache() : Cache {
 	const config = vscode.workspace.getConfiguration('gitignore');

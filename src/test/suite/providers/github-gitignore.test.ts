@@ -90,7 +90,8 @@ providers.forEach(provider => {
 				type: GitignoreOperationType.Overwrite
 			};
 
-			await provider.download(operation);
+			const fileStream = fs.createWriteStream(operation.path, { flags: "w" });
+			await provider.downloadToStream(operation.template.path, fileStream);
 
 			// Assert
 			const fileExists = await fileExits(operation.path);

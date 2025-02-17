@@ -1,11 +1,10 @@
 import * as https from 'https';
-import * as fs from 'fs';
 import * as url from 'url';
 import { WriteStream } from 'fs';
 
 
 import { Cache, CacheItem } from '../cache';
-import { GitignoreProvider, GitignoreTemplate, GitignoreOperation, GitignoreOperationType } from '../interfaces';
+import { GitignoreProvider, GitignoreTemplate} from '../interfaces';
 import { getAgent, getDefaultHeaders } from '../http-client';
 import { GithubSession } from '../github/session';
 
@@ -72,67 +71,6 @@ export class GithubGitignoreApiProvider implements GitignoreProvider {
 				});
 			})
 			.on('error', err => {
-				return reject(err.message);
-			});
-
-			req.end();
-		});
-	}
-
-	/**
-	 * Downloads a .gitignore from the repository to the path passed
-	 */
-	public download(operation: GitignoreOperation): Promise<void> {
-		return new Promise((resolve, reject) => {
-			const flags = operation.type === GitignoreOperationType.Overwrite ? 'w' : 'a';
-			const file = fs.createWriteStream(operation.path, { flags: flags });
-
-			// If appending to the existing .gitignore file, write a NEWLINE as separator
-			if(flags === 'a') {
-				file.write('\n');
-			}
-
-			/*
-			curl \
-				-H "Accept: application/vnd.github.v3.raw" \
-				https://api.github.com/gitignore/templates/Clojure
-			*/
-			const fullUrl = new url.URL(operation.template.path, 'https://api.github.com/gitignore/templates/');
-			const options: https.RequestOptions = {
-				agent: getAgent(),
-				method: 'GET',
-				hostname: fullUrl.hostname,
-				path: fullUrl.pathname,
-				headers: {...this.getHeaders(), 'Accept': 'application/vnd.github.v3.raw'}
-			};
-
-			const req = https.request(options, response => {
-				try {
-					this.githubSession.checkRateLimit(response.headers);
-				}
-				catch(error) {
-					return reject(error);
-				}
-
-				if(response.statusCode !== 200) {
-					return reject(new Error(`Download failed with status code ${response.statusCode}`));
-				}
-
-				response.pipe(file);
-
-				file.on('finish', () => {
-					file.close();
-					return resolve();
-				});
-			}).on('error', (err) => {
-				// Delete the .gitignore file if we created it
-				if(flags === 'w') {
-					fs.unlink(operation.path, err => {
-						if(err) {
-							console.error(err.message);
-						}
-					});
-				}
 				return reject(err.message);
 			});
 
