@@ -140,18 +140,14 @@ export class GithubGitignoreApiProvider implements GitignoreProvider {
 		});
 	}
 
-	public downloadToStream(operation: GitignoreOperation, stream: WriteStream): Promise<void> {
-		if(operation.template === null) {
-			throw new Error('Template cannot be null');
-		}
-
+	public downloadToStream(templatePath: string, stream: WriteStream): Promise<void> {
 		return new Promise((resolve, reject) => {
 			/*
 			curl \
 				-H "Accept: application/vnd.github.v3.raw" \
 				https://api.github.com/gitignore/templates/Clojure
 			*/
-			const fullUrl = new url.URL(operation.template.path, 'https://api.github.com/gitignore/templates/');
+			const fullUrl = new url.URL(templatePath, 'https://api.github.com/gitignore/templates/');
 			const options: https.RequestOptions = {
 				agent: getAgent(),
 				method: 'GET',
@@ -179,14 +175,6 @@ export class GithubGitignoreApiProvider implements GitignoreProvider {
 					return resolve();
 				});
 			}).on('error', (err) => {
-				// Delete the .gitignore file if we created it
-				if(operation.type === GitignoreOperationType.Overwrite) {
-					fs.unlink(operation.path, err => {
-						if(err) {
-							console.error(err.message);
-						}
-					});
-				}
 				return reject(err.message);
 			});
 
@@ -199,7 +187,7 @@ export class GithubGitignoreApiProvider implements GitignoreProvider {
 		let headers = getDefaultHeaders();
 
 		// Get GitHub session headers
-		headers = {...headers, ...this.githubSession.getHeaders()};
+		headers = {...headers, ...this.githubSession.getHeadersSync()};
 
 		return headers;
 	}

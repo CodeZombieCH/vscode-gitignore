@@ -4,8 +4,8 @@ import { join as joinPath } from 'path';
 
 import { Cache } from './cache';
 import { GitignoreTemplate, GitignoreOperation, GitignoreOperationType, GitignoreProvider } from './interfaces';
-import { GithubGitignoreRepositoryProvider } from './providers/github-gitignore-repository';
-import { GithubApiRateLimitReached, GithubSession } from './github/session';
+import { GithubGitignoreRepositoryProviderV2 } from './providers/github-gitignore-repository-v2';
+import { AuthenticationCancellationError, GithubApiRateLimitReached, GithubContext, GithubSession } from './github/session';
 
 
 class CancellationError extends Error {
@@ -27,7 +27,17 @@ function createCache() : Cache {
 	const config = vscode.workspace.getConfiguration('gitignore');
 
 	const cacheExpirationInterval = config.get('cacheExpirationInterval', 3600);
-	//const cacheExpirationInterval = 0;
+	console.log(`vscode-gitignore: creating cache with cacheExpirationInterval: ${cacheExpirationInterval}`);
+
+	return new Cache(cacheExpirationInterval);
+}
+
+/**
+ * Create a cache that never caches, used for testing only
+ * @returns
+ */
+function createNeverUsedCache() : Cache {
+	const cacheExpirationInterval = 0;
 	console.log(`vscode-gitignore: creating cache with cacheExpirationInterval: ${cacheExpirationInterval}`);
 
 	return new Cache(cacheExpirationInterval);
@@ -91,6 +101,32 @@ async function checkExistenceAndPromptForOperation(path: string, template: Gitig
 	return { path, template, type };
 }
 
+export async function downloadGitignoreFile(gitignoreRepository: GitignoreProvider, operation: GitignoreOperation) {
+	const flags = operation.type === GitignoreOperationType.Overwrite ? 'w' : 'a';
+	const fileStream = fs.createWriteStream(operation.path, { flags: flags });
+
+	// If appending to the existing .gitignore file, write a NEWLINE as separator
+	if(flags === 'a') {
+		fileStream.write('\n');
+	}
+
+	try {
+		// Store the file on file system
+		await gitignoreRepository.downloadToStream(operation.template.path, fileStream);
+	}
+	catch(error) {
+		// Delete the .gitignore file if we created it
+		if(flags === 'w') {
+			fs.unlink(operation.path, err => {
+				if(err) {
+					console.error(`vscode-gitignore: ${err.message}`);
+				}
+			});
+		}
+		throw error;
+	}
+}
+
 function promptForOperation() {
 	return vscode.window.showQuickPick([
 		{
@@ -118,9 +154,11 @@ function showSuccessMessage(operation: GitignoreOperation) {
 export function activate(context: vscode.ExtensionContext) {
 	console.log('vscode-gitignore: extension activated');
 
-	const githubSession = new GithubSession();
+	const githubContext = new GithubContext();
 
 	const disposable = vscode.commands.registerCommand('gitignore.addgitignore', async () => {
+		const githubSession = new GithubSession(githubContext);
+
 		try {
 			// Check if workspace open
 			if (!vscode.workspace.workspaceFolders) {
@@ -129,8 +167,7 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 
 			// Create gitignore repository provider
-			const gitignoreRepository: GitignoreProvider = new GithubGitignoreRepositoryProvider(cache, githubSession);
-			//const gitignoreRepository : GitignoreProvider = new GithubGitignoreApiProvider(cache);
+			const gitignoreRepository: GitignoreProvider = new GithubGitignoreRepositoryProviderV2(cache, githubSession);
 
 			// Load templates
 			const templates = await gitignoreRepository.getTemplates();
@@ -158,7 +195,7 @@ export function activate(context: vscode.ExtensionContext) {
 			const operation = await checkExistenceAndPromptForOperation(path, template);
 
 			// Store the file on file system
-			await gitignoreRepository.download(operation);
+			await downloadGitignoreFile(gitignoreRepository, operation);
 
 			// Show success message
 			await showSuccessMessage(operation);
@@ -169,30 +206,42 @@ export function activate(context: vscode.ExtensionContext) {
 				return;
 			}
 			else if (error instanceof GithubApiRateLimitReached) {
-				if (githubSession.isAuthenticated()) {
-					console.error('vscode-gitignore: GitHub API rate limit reached');
+				console.error('vscode-gitignore: GitHub API rate limit reached');
+
+				// In case we are already authenticated, there is no other way to continue
+				// => fail with error message
+				if (await githubSession.isAuthenticated()) {
 					await vscode.window.showErrorMessage('GitHub API rate limit reached');
 					return;
 				}
 
-				// Try to get GitHub API token
+				// In case we are not authenticated yet, we can continue by trying to authenticate
 				try {
 					const token = await githubSession.tryGetGithubToken();
 					if(token) {
-						console.log('vscode-gitignore: acquired GitHub access token');
+						console.info('vscode-gitignore: acquiring GitHub access token succeeded');
 						await vscode.window.showInformationMessage('Acquired GitHub access token. Please try again.');
 					}
 					else {
-						console.log('vscode-gitignore: Acquiring access token failed');
-						await vscode.window.showErrorMessage('Acquiring GitHub access token cancelled or failed');
+						console.error('vscode-gitignore: acquiring GitHub access token failed');
+						await vscode.window.showErrorMessage('Acquiring GitHub access token failed');
 					}
 				}
 				catch(error) {
-					console.log('vscode-gitignore: ', error);
-					await vscode.window.showErrorMessage(String(error));
+					if (error instanceof CancellationError) {
+						console.info('vscode-gitignore: command cancelled');
+					}
+					else if (error instanceof AuthenticationCancellationError) {
+						console.info('vscode-gitignore: acquiring GitHub access token cancelled');
+					}
+					else {
+						console.error('vscode-gitignore: ', error);
+						await vscode.window.showErrorMessage(String(error));
+					}
 				}
 			}
 			else {
+				console.error('vscode-gitignore: ', error);
 				await vscode.window.showErrorMessage(String(error));
 			}
 		}
