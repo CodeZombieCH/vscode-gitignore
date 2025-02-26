@@ -1,12 +1,12 @@
 import * as https from 'https';
-import * as fs from 'fs';
 import * as url from 'url';
 import { WriteStream } from 'fs';
 
-import { getAgent, getDefaultHeaders } from '../http-client';
+import { getAgent } from '../http-client';
 import { Cache, CacheItem } from '../cache';
 import { GitignoreProvider, GitignoreTemplate } from '../interfaces';
 import { GithubSession } from '../github/session';
+import { GitHubClient } from '../github/client';
 
 
 interface GithubRepositoryItem {
@@ -21,8 +21,10 @@ interface GithubRepositoryItem {
  * https://docs.github.com/en/rest/repos/contents
  */
 export class GithubGitignoreRepositoryProviderV2 implements GitignoreProvider {
+	private client: GitHubClient;
 
-	constructor(private cache: Cache, private githubSession: GithubSession) {
+	constructor(private cache: Cache, githubSession: GithubSession) {
+		this.client = new GitHubClient(githubSession);
 	}
 
 	/**
@@ -60,10 +62,10 @@ export class GithubGitignoreRepositoryProviderV2 implements GitignoreProvider {
 		const options: https.RequestOptions = {
 			agent: getAgent(),
 			method: 'GET',
-			headers: {...await this.getHeaders(), 'Accept': 'application/vnd.github.v3+json'},
+			headers: {...await this.client.getHeaders(), 'Accept': 'application/vnd.github.v3+json'},
 		};
 
-		const responseBody = await this.requestString(fullUrl, options);
+		const responseBody = await this.client.requestString(fullUrl, options);
 
 		const items = JSON.parse(responseBody) as GithubRepositoryItem[];
 
@@ -97,85 +99,10 @@ export class GithubGitignoreRepositoryProviderV2 implements GitignoreProvider {
 		const options: https.RequestOptions = {
 			agent: getAgent(),
 			method: 'GET',
-			headers: {...await this.getHeaders(), 'Accept': 'application/vnd.github.v3.raw'}
+			headers: {...await this.client.getHeaders(), 'Accept': 'application/vnd.github.v3.raw'}
 		};
 
 
-		await this.requestWriteStream(fullUrl, options, writeStream);
-	}
-
-	private async getHeaders() {
-		// Get default HTTP client headers
-		let headers = getDefaultHeaders();
-
-		// Get GitHub session headers
-		headers = {...headers, ...await this.githubSession.getHeaders()};
-
-		return headers;
-	}
-
-	private requestString(url: string | url.URL, options: https.RequestOptions) : Promise<string> {
-		return new Promise((resolve, reject) => {
-			const req = https.request(url, options, res => {
-
-				try {
-					this.githubSession.checkRateLimit(res.headers);
-				}
-				catch(error) {
-					return reject(error);
-				}
-
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				const data : any[] = [];
-
-				res.on('data', chunk => {
-					data.push(chunk);
-				});
-
-				res.on('end', () => {
-					const responseBody: string = Buffer.concat(data).toString();
-
-					if(res.statusCode !== 200) {
-						return reject(responseBody);
-					}
-
-					resolve(responseBody);
-				});
-			})
-			.on('error', err => {
-				return reject(err.message);
-			});
-
-			req.end();
-		});
-	}
-
-	private requestWriteStream(url: string | url.URL, options: https.RequestOptions, stream: fs.WriteStream) : Promise<void> {
-		return new Promise((resolve, reject) => {
-			const req = https.request(url, options, res => {
-				try {
-					this.githubSession.checkRateLimit(res.headers);
-				}
-				catch(error) {
-					return reject(error);
-				}
-
-				if(res.statusCode !== 200) {
-					return reject(new Error(`Download failed with status code ${res.statusCode}`));
-				}
-
-				res.pipe(stream);
-
-				stream.on('finish', () => {
-					stream.close();
-					resolve();
-				});
-			})
-			.on('error', err => {
-				return reject(err.message);
-			});
-
-			req.end();
-		});
+		await this.client.requestWriteStream(fullUrl, options, writeStream);
 	}
 }
