@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import * as HttpsProxyAgent from 'https-proxy-agent';
+import { HttpsProxyAgent } from 'https-proxy-agent';
 import { Agent } from 'http';
 
 
