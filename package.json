@@ -16,7 +16,7 @@
 	"homepage": "https://github.com/CodeZombieCH/vscode-gitignore/issues",
 	"license": "MIT",
 	"engines": {
-		"vscode": "^1.48.0"
+		"vscode": "^1.63.0"
 	},
 	"categories": [
 		"Programming Languages",
@@ -69,34 +69,35 @@
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run package",
-		"compile": "webpack",
-		"watch": "webpack --watch",
-		"package": "webpack --mode production --devtool hidden-source-map",
+		"compile": "npm run check-types && npm run lint && node esbuild.js",
+		"watch": "npm-run-all -p watch:*",
+		"watch:esbuild": "node esbuild.js --watch",
+		"watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+		"package": "npm run check-types && npm run lint && node esbuild.js --production",
 		"compile-tests": "tsc -p . --outDir out",
 		"watch-tests": "tsc -p . -w --outDir out",
 		"pretest": "npm run compile-tests && npm run compile && npm run lint",
-		"lint": "eslint src --ext ts",
-		"test": "node ./out/test/runTest.js"
+		"check-types": "tsc --noEmit",
+		"lint": "eslint src",
+		"test": "vscode-test"
 	},
 	"devDependencies": {
-		"@types/glob": "^7.2.0",
-		"@types/mocha": "^9.1.1",
-		"@types/node": "16.x",
-		"@types/vscode": "1.48.x",
-		"@typescript-eslint/eslint-plugin": "^5.30.0",
-		"@typescript-eslint/parser": "^5.30.0",
-		"@vscode/test-electron": "^2.1.5",
-		"eslint": "^8.18.0",
-		"glob": "^8.0.3",
-		"mocha": "^10.0.0",
-		"ts-loader": "^9.3.1",
-		"typescript": "^4.7.4",
-		"vsce": "^2.9.2",
-		"webpack": "^5.73.0",
-		"webpack-cli": "^4.10.0"
+		"@eslint/js": "^9.21.0",
+		"@types/mocha": "^10.0.10",
+		"@types/node": "^22.13.5",
+		"@types/vscode": "^1.97.0",
+		"@typescript-eslint/eslint-plugin": "^8.22.0",
+		"@typescript-eslint/parser": "^8.22.0",
+		"@vscode/test-cli": "^0.0.10",
+		"@vscode/test-electron": "^2.4.1",
+		"esbuild": "^0.25.0",
+		"eslint": "^9.19.0",
+		"npm-run-all": "^4.1.5",
+		"typescript": "^5.7.3",
+		"typescript-eslint": "^8.25.0"
 	},
 	"dependencies": {
-		"https-proxy-agent": "^4.0.0"
+		"https-proxy-agent": "^7.0.6"
 	},
 	"__metadata": {
 		"id": "3e891cf9-53cb-49a3-8d01-8f0b1f0afb29",

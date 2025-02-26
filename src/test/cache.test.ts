@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 
-import {Cache, CacheItem} from '../../cache';
+import {Cache, CacheItem} from '../cache';
 
 
 suite('Cache', () => {

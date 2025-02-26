@@ -1,11 +1,11 @@
 // import * as assert from 'assert';
 
 // import * as vscode from 'vscode';
-import { downloadGitignoreFile } from '../../extension';
-import { GitignoreOperation, GitignoreOperationType, GitignoreProvider, GitignoreTemplate } from '../../interfaces';
+import { downloadGitignoreFile } from '../extension';
+import { GitignoreOperation, GitignoreOperationType, GitignoreProvider, GitignoreTemplate } from '../interfaces';
 import * as fs from 'fs';
-import { createTmpTestDir } from '../utils';
-import * as assert from 'assert';
+import { createTmpTestDir } from './utils';
+import assert from 'assert';
 
 class GitignoreProviderMock implements GitignoreProvider {
 	getTemplates(): Promise<GitignoreTemplate[]> {
