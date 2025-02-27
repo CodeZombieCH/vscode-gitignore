@@ -25,59 +25,22 @@ Start command palette (with <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> or <kb
 }
 ```
 
-### Authenticated GitHub API Requests
+## GitHub API Rate Limits
 
 This extension makes API calls to the [GitHub REST API](https://docs.github.com/en/rest) which are subject to [rate limits](https://docs.github.com/en/rest/overview/resources-in-the-rest-api#rate-limiting).
 
-By default, requests sent to the GitHub REST API are unauthenticated. Although the rate limit for unauthenticated requests is low, this should usually not be an issue because of caching and the most likely infrequent usage of this extension.
+By default, requests sent to the GitHub REST API are unauthenticated. Although the rate limit for unauthenticated requests is low, this should usually not be an issue because of caching and the typical infrequent usage of this extension.
 
-If you reach the rate limit (e.g. because you work inside a corporate network), you can switch to [authenticated requests](https://docs.github.com/en/rest/overview/resources-in-the-rest-api#authentication) by setting the `GITHUB_AUTHORIZATION` environment variable.
-
-#### Examples
-
-Using a [personal access token](https://docs.github.com/en/rest/overview/resources-in-the-rest-api#oauth2-token-sent-in-a-header):
-
-	export GITHUB_AUTHORIZATION='Token <oauth2-token>'
-	code
-
-Using an [OAuth2 key/secret](https://docs.github.com/en/rest/overview/resources-in-the-rest-api#oauth2-keysecret)
-
-	export GITHUB_AUTHORIZATION='Basic <base65-encoded-key-secret>'
-	code
+If you reach the rate limit (e.g. because you work inside a corporate network), the extension will ask you if you want to the Authenticaton Provider for GitHub. If you agree, the extension will use authenticated GitHub API calls, which come with a mich higher rate limit than unauthenticated calls.
 
 
 ## Roadmap
 
-### v0.1
-- Basic implementation that allows to pull a single `.gitignore` file
-
-### v0.2
-- Add language support for `.gitignore` files
-
-### v0.3
-- Support reading `.gitignore` files from subdirectories in the github/gitignore repository
-
-### v0.4
-- Support adding multiple `.gitignore` files and merge it to a `.gitignore` file
-
-### v0.5
-- Support proxy
-
-### v0.6
-- Update extension to more recent vscode ecosystem
-- Update dependencies
-
-### v0.7
-- Support multi-root workspaces (see contribution by @hangxingliu)
-
-### v0.8
-- Fix bugs
-- Remove `github` dependency
-- Update dependencies
-
 ### v0.x
-- Switch to async/await
-- Further improve proxy support
+- Implement logging accroding to best practices
+- Replace `https-proxy-agent` package by high level `proxy-agent` package
+- Switch to fetch API (requires vscode v1.82)
+- Further test and improve proxy support
 - Add unit tests with active proxy
 
 
@@ -88,7 +51,7 @@ See [CHANGELOG.md](CHANGELOG.md)
 
 ## License
 
-See [LICENSE](LICENSE) file
+See [LICENSE](LICENSE)
 
 
 ## Credits
