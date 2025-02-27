@@ -1,22 +1,10 @@
-import { IncomingHttpHeaders } from 'http';
 import * as vscode from 'vscode';
 
 const AnswerYes = 'Yes';
 const AnswerNo = 'No';
 
-const GitHubRateLimitHeader = 'x-ratelimit-remaining';
-
 /**
- * Thrown when the GitHub API rate limit has been reached
- */
-export class GithubApiRateLimitReached extends Error {
-	constructor(message: string) {
-		super(message);
-	}
-}
-
-/**
- * Thrown when a user cancels the request to authenticate with GitHub
+ * Error thrown when a user cancels the request to authenticate with GitHub
  */
 export class AuthenticationCancellationError extends Error {
 
@@ -66,12 +54,6 @@ export class GithubSession {
 	 */
 	private _sessionPromise: Thenable<vscode.AuthenticationSession | undefined> | null  = null;
 
-	/**
-	 * Authentication session (lazy loaded)
-	 * @deprecated
-	 */
-	private session: vscode.AuthenticationSession | null = null;
-
 	constructor(context: GithubContext) {
 		this.context = context;
 	}
@@ -83,20 +65,22 @@ export class GithubSession {
 	async tryGetGithubToken() {
 		this.context.useAuthenticationProvider = true;
 
-		// prompt for authenticate?
-		const answer = await vscode.window.showInformationMessage(
-			'GitHub API rate limit reached. Do you want to authenticate with GitHub?',
-			// { modal: true },
-			AnswerYes,
-			AnswerNo);
-		if (answer !== AnswerYes) {
-			this.context.hasUserAgreed = false;
-			console.log('vscode-gitignore: user disagreed to use GitHub authentication provider');
-			throw new AuthenticationCancellationError();
-		}
+		if(!this.context.hasUserAgreed) {
+			// prompt for authenticate?
+			const answer = await vscode.window.showInformationMessage(
+				'GitHub API rate limit reached. Do you want to authenticate with GitHub?',
+				// { modal: true },
+				AnswerYes,
+				AnswerNo);
+			if (answer !== AnswerYes) {
+				this.context.hasUserAgreed = false;
+				console.log('vscode-gitignore: user disagreed to use GitHub authentication provider');
+				throw new AuthenticationCancellationError();
+			}
 
-		this.context.hasUserAgreed = true;
-		console.log('vscode-gitignore: user agreed to use GitHub authentication provider');
+			this.context.hasUserAgreed = true;
+			console.log('vscode-gitignore: user agreed to use GitHub authentication provider');
+		}
 
 		// request github credentials
 		try {
@@ -127,15 +111,6 @@ export class GithubSession {
 	}
 
 	/**
-	 *
-	 * @deprecated
-	 */
-	private getAccessTokenSync() {
-		console.log(this.session ? this.session.accessToken : null);
-		return this.session ? this.session.accessToken : null;
-	}
-
-	/**
 	 * Gets an access token silently, assuming the user is already signed in
 	 * @returns
 	 */
@@ -158,52 +133,6 @@ export class GithubSession {
 		return null;
 	}
 
-	/**
-	 *
-	 * @param headers Check the current GitHub API rate limit by parsing the corresponding response header
-	 * @returns Rate limit
-	 */
-	checkRateLimit(headers: IncomingHttpHeaders) {
-		const rateLimitRemainingRaw = headers[GitHubRateLimitHeader];
-
-		if (rateLimitRemainingRaw === undefined) {
-			return undefined;
-		}
-
-		const rateLimitRemaining = Number.parseInt(rateLimitRemainingRaw as string);
-		console.info(`vscode-gitignore: GitHub API rate limit remaining: ${rateLimitRemaining}`);
-
-		if (rateLimitRemaining < 1) {
-			throw new GithubApiRateLimitReached('GitHub API rate limit reached');
-		}
-
-		// if (rateLimitRemaining < 60) {
-		// 	throw new GithubApiRateLimitReached('GitHub API rate limit reached');
-		// }
-
-		return rateLimitRemaining;
-	}
-
-	/**
-	 *
-	 * @deprecated
-	 */
-	private getAuthorizationHeaderValueSync() {
-		// Use vscode authentication provider
-		const accessToken = this.getAccessTokenSync();
-		if (accessToken) {
-			return 'Token ' + accessToken;
-		}
-
-		// Use env var
-		if (process.env.GITHUB_AUTHORIZATION) {
-			return process.env.GITHUB_AUTHORIZATION;
-		}
-		else {
-			return null;
-		}
-	}
-
 	private async getAuthorizationHeaderValue() {
 		// Use vscode authentication provider
 		const accessToken = await this.getAccessToken();
@@ -218,23 +147,6 @@ export class GithubSession {
 		else {
 			return null;
 		}
-	}
-
-	/**
-	 *
-	 * @deprecated
-	 */
-	getHeadersSync() : Record<string, string> {
-		let headers = {};
-
-		// Add authorization header if authorization is available
-		const authorizationHeaderValue = this.getAuthorizationHeaderValueSync();
-		if (authorizationHeaderValue) {
-			console.log('vscode-gitignore: setting authorization header');
-			headers = { ...headers, 'Authorization': authorizationHeaderValue };
-		}
-
-		return headers;
 	}
 
 	async getHeaders() : Promise<Record<string, string>> {

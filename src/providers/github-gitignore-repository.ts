@@ -20,7 +20,7 @@ interface GithubRepositoryItem {
  * Github gitignore template provider based on the "/repos" endpoint of the Github REST API
  * https://docs.github.com/en/rest/repos/contents
  */
-export class GithubGitignoreRepositoryProviderV2 implements GitignoreProvider {
+export class GithubGitignoreRepositoryProvider implements GitignoreProvider {
 	private client: GitHubClient;
 
 	constructor(private cache: Cache, githubSession: GithubSession) {
