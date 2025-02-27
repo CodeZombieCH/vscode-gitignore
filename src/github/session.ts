@@ -14,7 +14,7 @@ export class AuthenticationCancellationError extends Error {
 /**
  * A context for the interaction of the user with GitHub
  *
- * Designed to live as long as vscode is open
+ * Designed to live as long as the extension is active
  */
 export class GithubContext {
 	/**
@@ -23,7 +23,15 @@ export class GithubContext {
 	useAuthenticationProvider = false; /* Start unauthenticated */
 
 	/**
-	 * Flag indicating if user agreed to use the GitHub authentication provider
+	 * Flag indicating if user agreed to use the GitHub authentication provider.
+	 * 
+	 * As the GithubContext instance lives as long as the extension is active, the flag
+	 * is kept only for the lifetime of a single vscode instance.
+	 * This could be considered inconvenient, as the user would have to agree to use
+	 * the GitHub authentication provider every time he opens a vscode instance and
+	 * uses the extension.
+	 * 
+	 * TODO: Consider storing this flag using vscode settings.
 	 */
 	hasUserAgreed = false;
 }
@@ -33,9 +41,9 @@ export class GithubContext {
  * At the beginning, the session will be unauthenticated.
  * When it reaches the ratelimit, it will prompt for authentication and continue to use the access token from the authenticated session.
  *
- * I normal scenarios, the session should always stay unauthenticated. In scenarios where a lot of user access GitHub from the same IP,
+ * In normal scenarios, the session should always stay unauthenticated. In scenarios where a lot of user access GitHub from the same IP,
  * it is likely the rate limit will be hit. Authenticating with GitHub will switch from a per IP context to a per user context,
- * with much higher rate limit (50 vs 5000 at the time of writing).
+ * with considerable higher rate limit (50 vs 5000 at the time of writing).
  *
  * Designed to live during the execution of a command.
  */
@@ -66,7 +74,7 @@ export class GithubSession {
 		this.context.useAuthenticationProvider = true;
 
 		if(!this.context.hasUserAgreed) {
-			// prompt for authenticate?
+			// Ask user if he wants to use authentication providers
 			const answer = await vscode.window.showInformationMessage(
 				'GitHub API rate limit reached. Do you want to authenticate with GitHub?',
 				// { modal: true },
@@ -82,14 +90,13 @@ export class GithubSession {
 			console.log('vscode-gitignore: user agreed to use GitHub authentication provider');
 		}
 
-		// request github credentials
+		// Request GitHub credentials
 		try {
-			// Lazy load
-			if(this._sessionPromise === null) {
-				// DO NOT AWAIT HERE!
-				this._sessionPromise = vscode.authentication.getSession('github', [], { createIfNone: true });
-				console.info('vscode-gitignore: acquiring session from authentication provider');
-			}
+			// We always create a new session promise as this call to getSession() has `createIfNone: true` set
+			// and the user agreed to create a session
+			// DO NOT AWAIT HERE!
+			this._sessionPromise = vscode.authentication.getSession('github', [], { createIfNone: true });
+			console.info('vscode-gitignore: acquiring session from authentication provider');
 
 			const session = await this._sessionPromise;
 			if (session) {
