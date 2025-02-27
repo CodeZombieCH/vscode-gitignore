@@ -5,128 +5,66 @@ import { WriteStream } from 'fs';
 
 import { Cache, CacheItem } from '../cache';
 import { GitignoreProvider, GitignoreTemplate} from '../interfaces';
-import { getAgent, getDefaultHeaders } from '../http-client';
+import { getAgent } from '../http-client';
 import { GithubSession } from '../github/session';
+import { GitHubClient } from '../github/client';
 
 /**
  * Github gitignore template provider based on "/gitignore/templates" endpoint of the Github REST API
  * https://docs.github.com/en/rest/gitignore
  */
 export class GithubGitignoreApiProvider implements GitignoreProvider {
+	private client: GitHubClient;
 
-	constructor(private cache: Cache, private githubSession: GithubSession) {
+	constructor(private cache: Cache, githubSession: GithubSession) {
+		this.client = new GitHubClient(githubSession);
 	}
 
 	/**
 	 * Get all .gitignore templates
 	 */
-	public getTemplates(): Promise<GitignoreTemplate[]> {
+	public async getTemplates(): Promise<GitignoreTemplate[]> {
 		// If cached, return cached content
 		const item = this.cache.get('gitignore') as GitignoreTemplate[];
 		if(typeof item !== 'undefined') {
-			return Promise.resolve<GitignoreTemplate[]>(item);
+			return item;
 		}
 
-		return new Promise((resolve, reject) => {
-			/*
-			curl \
-				-H "Accept: application/vnd.github.v3+json" \
-				https://api.github.com/gitignore/templates
-			*/
-			const options: https.RequestOptions = {
-				agent: getAgent(),
-				method: 'GET',
-				hostname: 'api.github.com',
-				path: '/gitignore/templates',
-				headers: {...this.getHeaders(), 'Accept': 'application/vnd.github.v3+json'},
-			};
-			const req = https.request(options, res => {
-				try {
-					this.githubSession.checkRateLimit(res.headers);
-				}
-				catch(error) {
-					return reject(error);
-				}
+		/*
+		curl \
+			-H "Accept: application/vnd.github.v3+json" \
+			https://api.github.com/gitignore/templates
+		*/
+		const url = 'https://api.github.com/gitignore/templates';
+		const options: https.RequestOptions = {
+			agent: getAgent(),
+			method: 'GET',
+			headers: {...await this.client.getHeaders(), 'Accept': 'application/vnd.github.v3+json'},
+		};
 
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				const data : any[] = [];
+		const responseBody = await this.client.requestString(url, options);
+		const templatesRaw = JSON.parse(responseBody) as string[];
+		const templates = templatesRaw.map(t => <GitignoreTemplate>{ name: t, path: t});
 
-				res.on('data', chunk => {
-					data.push(chunk);
-				});
-				res.on('end', () => {
-					const responseBody: string = Buffer.concat(data).toString();
+		// Cache the retrieved gitignore files
+		this.cache.add(new CacheItem('gitignore', templates));
 
-					if(res.statusCode !== 200) {
-						return reject(responseBody);
-					}
-
-					const templatesRaw = JSON.parse(responseBody) as string[];
-					const templates = templatesRaw.map(t => <GitignoreTemplate>{ name: t, path: t});
-
-					// Cache the retrieved gitignore files
-					this.cache.add(new CacheItem('gitignore', templates));
-
-					return resolve(templates);
-				});
-			})
-			.on('error', err => {
-				return reject(err.message);
-			});
-
-			req.end();
-		});
+		return templates;
 	}
 
-	public downloadToStream(templatePath: string, stream: WriteStream): Promise<void> {
-		return new Promise((resolve, reject) => {
-			/*
-			curl \
-				-H "Accept: application/vnd.github.v3.raw" \
-				https://api.github.com/gitignore/templates/Clojure
-			*/
-			const fullUrl = new url.URL(templatePath, 'https://api.github.com/gitignore/templates/');
-			const options: https.RequestOptions = {
-				agent: getAgent(),
-				method: 'GET',
-				hostname: fullUrl.hostname,
-				path: fullUrl.pathname,
-				headers: {...this.getHeaders(), 'Accept': 'application/vnd.github.v3.raw'}
-			};
+	public async downloadToStream(templatePath: string, writeStream: WriteStream): Promise<void> {
+		/*
+		curl \
+			-H "Accept: application/vnd.github.v3.raw" \
+			https://api.github.com/gitignore/templates/Clojure
+		*/
+		const fullUrl = new url.URL(templatePath, 'https://api.github.com/gitignore/templates/');
+		const options: https.RequestOptions = {
+			agent: getAgent(),
+			method: 'GET',
+			headers: {...await this.client.getHeaders(), 'Accept': 'application/vnd.github.v3.raw'}
+		};
 
-			const req = https.request(options, response => {
-				try {
-					this.githubSession.checkRateLimit(response.headers);
-				}
-				catch(error) {
-					return reject(error);
-				}
-
-				if(response.statusCode !== 200) {
-					return reject(new Error(`Download failed with status code ${response.statusCode}`));
-				}
-
-				response.pipe(stream);
-
-				stream.on('finish', () => {
-					stream.close();
-					return resolve();
-				});
-			}).on('error', (err) => {
-				return reject(err.message);
-			});
-
-			req.end();
-		});
-	}
-
-	private getHeaders() {
-		// Get default HTTP client headers
-		let headers = getDefaultHeaders();
-
-		// Get GitHub session headers
-		headers = {...headers, ...this.githubSession.getHeadersSync()};
-
-		return headers;
+		await this.client.requestWriteStream(fullUrl, options, writeStream);
 	}
 }

@@ -5,7 +5,7 @@ import { Writable } from 'stream';
 import { Cache } from '../../cache';
 import { GitignoreProvider, GitignoreOperation, GitignoreTemplate, GitignoreOperationType } from '../../interfaces';
 import { GithubGitignoreApiProvider } from '../../providers/github-gitignore-api';
-import { GithubGitignoreRepositoryProviderV2 } from '../../providers/github-gitignore-repository-v2';
+import { GithubGitignoreRepositoryProvider } from '../../providers/github-gitignore-repository';
 import { GithubContext, GithubSession } from '../../github/session';
 import { createTmpTestDir } from '../utils';
 
@@ -25,7 +25,7 @@ function fileExits(path: string): Promise<boolean> {
 
 
 const providers: GitignoreProvider[] = [
-	new GithubGitignoreRepositoryProviderV2(new Cache(0), new GithubSession(new GithubContext())),
+	new GithubGitignoreRepositoryProvider(new Cache(0), new GithubSession(new GithubContext())),
 	new GithubGitignoreApiProvider(new Cache(0), new GithubSession(new GithubContext())),
 ];
 

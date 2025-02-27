@@ -36,7 +36,6 @@ export default [
                 selector: "import",
                 format: ["camelCase", "PascalCase"],
             }],
-            "@typescript-eslint/prefer-promise-reject-errors": "warn",
             curly: "warn",
             eqeqeq: "warn",
             "no-throw-literal": "warn",

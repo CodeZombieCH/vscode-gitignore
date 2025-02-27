@@ -4,8 +4,9 @@ import { join as joinPath } from 'path';
 
 import { Cache } from './cache';
 import { GitignoreTemplate, GitignoreOperation, GitignoreOperationType, GitignoreProvider } from './interfaces';
-import { GithubGitignoreRepositoryProviderV2 } from './providers/github-gitignore-repository-v2';
-import { AuthenticationCancellationError, GithubApiRateLimitReached, GithubContext, GithubSession } from './github/session';
+import { GithubGitignoreRepositoryProvider } from './providers/github-gitignore-repository';
+import { AuthenticationCancellationError, GithubContext, GithubSession } from './github/session';
+import { GithubApiRateLimitReachedError } from './github/client';
 
 
 class CancellationError extends Error {
@@ -168,7 +169,7 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 
 			// Create gitignore repository provider
-			const gitignoreRepository: GitignoreProvider = new GithubGitignoreRepositoryProviderV2(cache, githubSession);
+			const gitignoreRepository: GitignoreProvider = new GithubGitignoreRepositoryProvider(cache, githubSession);
 
 			// Load templates
 			const templates = await gitignoreRepository.getTemplates();
@@ -206,7 +207,7 @@ export function activate(context: vscode.ExtensionContext) {
 				console.info('vscode-gitignore: command cancelled');
 				return;
 			}
-			else if (error instanceof GithubApiRateLimitReached) {
+			else if (error instanceof GithubApiRateLimitReachedError) {
 				console.error('vscode-gitignore: GitHub API rate limit reached');
 
 				// In case we are already authenticated, there is no other way to continue
