@@ -2,7 +2,7 @@
 	"name": "gitignore",
 	"displayName": "gitignore",
 	"description": "Lets you pull .gitignore templates from the https://github.com/github/gitignore repository. Language support for .gitignore files.",
-	"version": "0.10.0-alpha.1",
+	"version": "0.10.0-rc",
 	"author": "Marc-André Bühler",
 	"publisher": "codezombiech",
 	"icon": "icon.png",
