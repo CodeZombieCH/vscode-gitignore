@@ -1,5 +1,6 @@
 .editorconfig
 .gitattributes
+.github/**
 .gitignore
 .vscode-test/**
 .vscode/**
@@ -10,10 +11,10 @@
 **/*.ts
 **/eslint.config.mjs
 **/tsconfig.json
+docs/**
 esbuild.js
 icon/**
 node_modules/**
 out/**
 src/**
 test-workspaces/**
-vsc-extension-quickstart.md
