@@ -2,7 +2,7 @@
 	"name": "gitignore",
 	"displayName": "gitignore",
 	"description": "Lets you pull .gitignore templates from the https://github.com/github/gitignore repository. Language support for .gitignore files.",
-	"version": "0.10.0-rc",
+	"version": "0.10.0-rc.2",
 	"author": "Marc-André Bühler",
 	"publisher": "codezombiech",
 	"icon": "icon.png",
@@ -13,10 +13,10 @@
 	"bugs": {
 		"url": "https://github.com/CodeZombieCH/vscode-gitignore/issues"
 	},
-	"homepage": "https://github.com/CodeZombieCH/vscode-gitignore/issues",
+	"homepage": "https://github.com/CodeZombieCH/vscode-gitignore",
 	"license": "MIT",
 	"engines": {
-		"vscode": "^1.63.0"
+		"vscode": "^1.66.0"
 	},
 	"categories": [
 		"Programming Languages",
@@ -79,13 +79,14 @@
 		"pretest": "npm run compile-tests && npm run compile && npm run lint",
 		"check-types": "tsc --noEmit",
 		"lint": "eslint src",
-		"test": "vscode-test"
+		"test": "vscode-test",
+		"vsce-package": "npx @vscode/vsce package"
 	},
 	"devDependencies": {
 		"@eslint/js": "^9.21.0",
 		"@types/mocha": "^10.0.10",
 		"@types/node": "^22.13.5",
-		"@types/vscode": ">=1.63.0 <1.64.0",
+		"@types/vscode": ">=1.66.0 <1.67.0",
 		"@typescript-eslint/eslint-plugin": "^8.22.0",
 		"@typescript-eslint/parser": "^8.22.0",
 		"@vscode/test-cli": "^0.0.10",
